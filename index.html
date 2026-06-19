@@ -3,405 +3,442 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Persona 3 Portable — Calendar</title>
+<title>Persona‑style Lunar Calendar</title>
 <style>
   :root{
-    --bg:#030617;
-    --card-bg:#07132a;
-    --stripe-1:rgba(31,107,255,0.95);
-    --stripe-2:rgba(10,30,80,0.85);
-    --accent-yellow:#ffd94a;
-    --accent-red:#ff4b6e;
-    --accent-orange:#ff9b4b;
-    --muted:#9fb4ff;
+    --bg:#071028;
+    --panel:#0f2a56;
+    --accent:#2f6cff;
+    --accent-2:#1b3f7a;
+    --muted:#9fb0d6;
     --white:#ffffff;
-    --diag:-34deg;
-    --day-size:4.6rem;
-    --gap:1.15rem;
-    --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    --holiday:#ff5b6b;
+    --today-yellow:#ffd94a;
+    --glass: rgba(255,255,255,0.04);
   }
-
-  /* page reset */
   *{box-sizing:border-box}
-  html,body{height:100%;background:#000;margin:0;font-family:var(--font);-webkit-font-smoothing:antialiased}
-  /* wrapper tuned for Notion/GitHub embed */
-  .p3p-wrap{width:100%;max-width:980px;aspect-ratio:16/7;padding:12px;margin:0 auto}
-  .p3p-card{
-    position:relative;height:100%;width:100%;border-radius:12px;overflow:hidden;
-    color:var(--white);
+  html,body{height:100%;margin:0;background:transparent;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;color:var(--white)}
+  /* Embed container sized for Notion/GitHub embeds */
+  .embed {
+    width:100%;
+    max-width:820px;
+    margin:0 auto;
+    aspect-ratio:16/9;
+    padding:18px;
+  }
+
+  .card {
+    width:100%;
+    height:100%;
+    border-radius:14px;
     background:
-      linear-gradient(180deg, rgba(6,18,40,0.6) 0%, rgba(2,6,18,1) 60%),
-      radial-gradient(1200px 300px at 10% 0%, rgba(31,75,160,0.12), transparent 20%);
-    box-shadow:0 18px 48px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.02);
+      radial-gradient(1200px 600px at 10% 10%, rgba(47,108,255,0.08), transparent 8%),
+      linear-gradient(180deg,#071028 0%, #02040a 100%);
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 8px 30px rgba(2,6,23,0.6);
+    padding:18px;
   }
 
-  /* blue diagonal stripe layers (game-like) */
-  .p3p-card::before,
-  .p3p-card::after{
-    content:"";position:absolute;inset:-40%;pointer-events:none;
-    transform:rotate(var(--diag));
+  /* Top-left Day off / Holiday banner */
+  .banner {
+    position:absolute;
+    left:18px;
+    top:18px;
+    display:inline-flex;
+    gap:10px;
+    align-items:center;
+    padding:8px 12px;
+    border-radius:999px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:#001;
+    font-weight:800;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    font-size:12px;
+    box-shadow:0 6px 18px rgba(20,40,90,0.35);
+    z-index:30;
   }
-  .p3p-card::before{
-    background:
-      repeating-linear-gradient(90deg,
-        rgba(31,107,255,0.18) 0 8px,
-        rgba(10,30,80,0.06) 8px 16px);
-    mix-blend-mode:screen;opacity:0.95;
+  .banner .jp { font-weight:900; font-size:11px; color:#fff; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6)); }
+  .banner .en { color:#fff; opacity:0.95; font-size:11px; }
+
+  /* Big date block bottom-left */
+  .big-date {
+    position:absolute;
+    left:18px;
+    bottom:18px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border-radius:10px;
+    padding:12px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    z-index:20;
+    min-width:110px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.6);
   }
-  .p3p-card::after{
-    background:linear-gradient(90deg, rgba(10,30,80,0.9), rgba(10,30,80,0.6) 40%, transparent 60%);
-    opacity:0.95;
+  .big-date .num { font-size:36px; font-weight:900; line-height:1; color:var(--white); }
+  .big-date .month { font-size:11px; text-transform:uppercase; color:var(--muted); letter-spacing:0.12em; }
+
+  /* Diagonal 7-day timeline */
+  .timeline-wrap {
+    position:absolute;
+    right:18px;
+    top:18px;
+    bottom:18px;
+    width:min(68%,520px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
   }
 
-  .p3p-inner{position:relative;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:18px 22px}
-
-  /* top row */
-  .p3p-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-  .p3p-left{display:flex;flex-direction:column;gap:10px;min-width:0}
-
-  /* small top-left banner */
-  .p3p-banner{
-    display:inline-flex;flex-direction:column;gap:2px;padding:6px 12px;border-radius:8px;
-    background:linear-gradient(135deg,var(--accent-red),var(--accent-orange));
-    box-shadow:0 6px 18px rgba(0,0,0,0.6);
-    text-transform:uppercase;font-weight:700;font-size:12px;letter-spacing:0.12em;
+  .timeline {
+    width:100%;
+    height:100%;
+    transform:skewY(-18deg);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:28px 10px;
+    pointer-events:auto;
   }
-  .p3p-banner .sub{font-weight:600;font-size:11px;opacity:0.95}
 
-  /* big blue stripe (main date band) */
-  .p3p-stripe{
-    display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-radius:10px;
-    background:linear-gradient(90deg,#0b2a6b 0%, #1b4fb0 40%, #3f7fff 100%);
-    box-shadow:0 12px 28px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06);
+  .day {
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:12px;
+    transform:skewY(18deg);
+    transition:transform .18s cubic-bezier(.2,.9,.2,1), filter .18s;
+    position:relative;
+    pointer-events:auto;
+  }
+
+  .day:hover { transform:skewY(18deg) scale(1.06); z-index:40; filter:brightness(1.12); }
+
+  .labels {
+    text-align:right;
+    min-width:72px;
+    color:var(--muted);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .labels .weekday { font-weight:800; color:var(--white); }
+  .labels .md { font-size:10px; opacity:.9; }
+
+  /* Moon container */
+  .moon-wrap {
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(180deg,#e6eefc 0%, #b6c6e6 40%, #7b86a0 100%);
+    box-shadow:0 6px 18px rgba(0,0,0,0.6), inset 0 -6px 18px rgba(0,0,0,0.12);
+    overflow:hidden;
+    transition:transform .18s;
+  }
+
+  /* small ring for hover pop */
+  .day:hover .moon-wrap { transform:scale(1.06); }
+
+  /* targeting ring for today */
+  .moon-wrap.today::after{
+    content:"";
+    position:absolute;
+    inset:-8px;
+    border-radius:50%;
+    border:2px solid var(--today-yellow);
+    box-shadow:0 0 18px rgba(255,217,74,0.85);
+    animation:target 1.6s ease-out infinite;
+  }
+  @keyframes target {
+    0%{ transform:scale(.9); opacity:1 }
+    70%{ transform:scale(1.18); opacity:0 }
+    100%{ transform:scale(1.18); opacity:0 }
+  }
+
+  /* moon face (base) */
+  .moon {
+    width:86%;
+    height:86%;
+    border-radius:50%;
+    position:relative;
+    overflow:hidden;
+    display:block;
     transform:translateZ(0);
   }
-  .p3p-stripe-left{display:flex;flex-direction:column;gap:4px}
-  .p3p-jp{font-size:12px;opacity:0.95;letter-spacing:0.12em}
-  .p3p-stripe-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.14em}
 
-  .p3p-stripe-date{ text-align:right; min-width:170px }
-  .p3p-stripe-date-main{font-size:clamp(28px,4.2vw,40px);font-weight:900;letter-spacing:0.12em}
-  .p3p-stripe-date-sub{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.14em;margin-top:4px}
-
-  /* top-right meta (Japanese text in image) */
-  .p3p-meta{ text-align:right; max-width:36%; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em }
-  .p3p-meta .title{font-weight:700;color:var(--white);font-size:13px;letter-spacing:0.14em}
-
-  /* diagonal timeline container */
-  .p3p-timeline-wrap{position:relative;display:flex;align-items:center;justify-content:center;overflow:visible;padding:6px 0}
-  .p3p-timeline{
-    display:flex;gap:var(--gap);transform:rotate(var(--diag));align-items:center;padding:6px;
-    transition:transform .18s ease;
+  /* shadow overlay used to create phases via clip-path */
+  .moon .shadow {
+    position:absolute;
+    inset:0;
+    background:#000;
+    mix-blend-mode:normal;
+    transition:all .28s ease;
   }
 
-  /* day circle */
-  .p3p-day{
-    width:var(--day-size);height:var(--day-size);border-radius:999px;position:relative;
-    background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.35));
-    box-shadow:0 8px 18px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04);
-    display:flex;align-items:center;justify-content:center;cursor:default;overflow:visible;
-    transition:transform .18s ease, box-shadow .18s ease;
-  }
-  .p3p-day:hover{transform:translateY(-6px) scale(1.08);box-shadow:0 22px 36px rgba(0,0,0,0.9)}
-  .p3p-day-inner{transform:rotate(calc(-1 * var(--diag)));display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:6px}
-
-  .p3p-dow{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em}
-  .p3p-num{font-weight:900;font-size:18px;letter-spacing:0.06em}
-
-  /* moon visuals using CSS masks/gradients */
-  .p3p-moon{
-    width:1.12rem;height:1.12rem;border-radius:50%;position:relative;overflow:hidden;
-    background:radial-gradient(circle at 30% 25%, #fff 0%, #d0d0d0 45%, #8a8a8a 100%);
-    box-shadow:0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+  /* yellow tint for current day */
+  .moon-wrap.today .moon {
+    background: radial-gradient(circle at 30% 30%, #fff7c0 0%, #ffd94a 40%, #c79a2a 100%);
   }
 
-  /* mask layer that moves horizontally based on --phase (0..1) */
-  .p3p-moon::before{
-    content:"";position:absolute;inset:0;border-radius:50%;
-    background:linear-gradient(90deg, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.98) 48%, rgba(0,0,0,0.0) 52%, rgba(0,0,0,0.0) 100%);
-    transform:translateX(calc((var(--phase,0.5) - 0.5) * 220%));
-    mix-blend-mode:multiply;transition:transform .18s linear;
+  /* holiday accent */
+  .day.holiday .labels .weekday,
+  .day.holiday .labels .md { color:var(--holiday); }
+
+  /* small responsive tweaks */
+  @media (max-width:640px){
+    .embed{max-width:520px}
+    .moon-wrap{width:42px;height:42px}
+    .big-date .num{font-size:28px}
+    .labels{min-width:60px;font-size:10px}
   }
-  /* subtle limb shading for realism */
-  .p3p-moon::after{
-    content:"";position:absolute;inset:0;border-radius:50%;
-    background:radial-gradient(circle at 70% 75%, rgba(0,0,0,0.85) 0%, transparent 60%);
-    opacity:0.6;
+  @media (max-width:420px){
+    .timeline-wrap{display:block; right:12px; top:12px; bottom:12px; width:62%}
+    .big-date{left:12px; bottom:12px}
+    .banner{left:12px; top:12px; padding:6px 10px; font-size:11px}
   }
 
-  /* current day styling: yellow moon + targeting ring */
-  .p3p-day.current .p3p-moon{
-    background:radial-gradient(circle at 30% 25%, #fff7b0 0%, var(--accent-yellow) 45%, #c89b1a 100%);
-  }
-  .p3p-day.current::before{
-    content:"";position:absolute;inset:-6px;border-radius:999px;border:2px solid rgba(255,255,255,0.12);
-    box-shadow:0 6px 18px rgba(0,0,0,0.6);
-  }
-  .p3p-day.current::after{
-    content:"";position:absolute;inset:-6px;border-radius:999px;border:2px solid var(--muted);
-    box-shadow:0 0 18px rgba(78,163,255,0.9);animation:targetRing 1.6s ease-out infinite;
-  }
-  @keyframes targetRing{
-    0%{transform:scale(.9);opacity:0}
-    35%{transform:scale(1.05);opacity:1}
-    100%{transform:scale(1.28);opacity:0}
-  }
-
-  /* bottom row */
-  .p3p-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:6px;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;font-size:12px}
-  .p3p-dot{width:10px;height:10px;border-radius:50%;background:var(--accent-yellow);box-shadow:0 0 10px rgba(255,217,74,0.9)}
-
-  /* tooltips (title attribute fallback) */
-  .p3p-day[role="button"]{outline:none}
-
-  /* responsive */
-  @media (max-width:820px){
-    :root{--day-size:3.8rem;--gap:0.9rem}
-    .p3p-stripe-date{min-width:120px}
-    .p3p-meta{display:none}
-  }
-  @media (max-width:480px){
-    :root{--day-size:3.1rem;--gap:0.7rem}
-    .p3p-stripe-date-main{font-size:20px}
-    .p3p-wrap{padding:8px}
-  }
+  /* small accessibility focus */
+  .day:focus-within, .day:focus { outline:2px solid rgba(255,255,255,0.06); }
 </style>
 </head>
 <body>
-  <div class="p3p-wrap">
-    <div class="p3p-card" id="p3p-card">
-      <div class="p3p-inner">
-        <div class="p3p-top">
-          <div class="p3p-left">
-            <!-- Top-left Day off / Holiday banner (hidden by default) -->
-            <div class="p3p-banner" id="p3p-banner" style="display:none">
-              <div class="main" id="p3p-banner-main">DAY OFF</div>
-              <div class="sub" id="p3p-banner-sub"></div>
-            </div>
+  <div class="embed" aria-hidden="false">
+    <div class="card" role="application" aria-label="Lunar calendar">
+      <div class="banner" id="banner" style="display:none">
+        <span class="jp">休日</span>
+        <span class="en">DAY OFF</span>
+      </div>
 
-            <!-- Big blue stripe with main date -->
-            <div class="p3p-stripe">
-              <div class="p3p-stripe-left">
-                <div class="p3p-jp">休日 | Day off</div>
-                <div class="p3p-stripe-label" id="p3p-stripe-label">JUILLET 2009</div>
-              </div>
-              <div class="p3p-stripe-date">
-                <div class="p3p-stripe-date-main" id="p3p-date-main">07</div>
-                <div class="p3p-stripe-date-sub" id="p3p-date-sub">Mardi · 07 / 07 / 2009</div>
-              </div>
-            </div>
-          </div>
+      <div class="big-date" aria-hidden="true">
+        <div class="num" id="big-day">--</div>
+        <div class="month" id="big-month">--</div>
+      </div>
 
-          <!-- Top-right meta (Japanese text) -->
-          <div class="p3p-meta">
-            <div class="title">ペルソナ3 リロード</div>
-            <div class="desc">デイリーライフトレーラー — Calendrier stylisé</div>
-          </div>
-        </div>
-
-        <!-- Diagonal timeline -->
-        <div class="p3p-timeline-wrap" aria-hidden="false">
-          <div class="p3p-timeline" id="p3p-timeline" role="list"></div>
-        </div>
-
-        <!-- Bottom row -->
-        <div class="p3p-bottom">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="p3p-dot" aria-hidden="true"></div>
-            <div id="p3p-bottom-text">AUJOURD'HUI</div>
-          </div>
-          <div id="p3p-moon-text" style="text-transform:uppercase;color:var(--white);font-weight:700"></div>
-        </div>
+      <div class="timeline-wrap">
+        <div class="timeline" id="timeline" role="list" aria-label="7 day timeline"></div>
       </div>
     </div>
   </div>
 
 <script>
 /* ---------- Utilities ---------- */
-function startOfDay(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
-function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
-function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function pad(n){ return String(n).padStart(2,'0'); }
 
-/* ---------- French holidays (fixed + movable) ---------- */
-function easterSunday(year){
-  // Meeus/Jones/Butcher algorithm
-  const a = year % 19;
-  const b = Math.floor(year / 100);
-  const c = year % 100;
-  const d = Math.floor(b / 4);
-  const e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4);
-  const k = c % 4;
-  const l = (32 + 2 * e + 2 * i - h - k) % 7;
-  const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31);
-  const day = ((h + l - 7 * m + 114) % 31) + 1;
-  return new Date(year, month - 1, day);
+/* ---------- Lunar phase calculation (accurate synodic method) ----------
+   Uses Julian date and synodic month to compute lunar age fraction (0..1).
+   Then we compute a phase mask for CSS: we will set shadow position/shape
+   based on the phase fraction (0=new, 0.5=full).
+*/
+const SYNODIC_MONTH = 29.530588853;
+
+function toJulianDate(date){
+  // Convert to UTC midnight fraction
+  return date.getTime()/86400000 + 2440587.5;
+}
+function lunarAgeFraction(date){
+  // reference new moon 2000-01-06 18:14 UTC (JD 2451550.1) is common anchor
+  const jd = toJulianDate(date);
+  const daysSince = jd - 2451550.1;
+  const frac = (daysSince / SYNODIC_MONTH) % 1;
+  return frac < 0 ? frac + 1 : frac;
 }
 
-function getFrenchHoliday(date){
-  const y = date.getFullYear();
-  const fixed = [
-    {m:0,d:1,label:"Jour de l'an"},
-    {m:4,d:1,label:"Fête du Travail"},
-    {m:4,d:8,label:"Victoire 1945"},
-    {m:6,d:14,label:"Fête Nationale"},
-    {m:10,d:1,label:"Toussaint"},
-    {m:10,d:11,label:"Armistice 1918"},
-    {m:11,d:25,label:"Noël"}
-  ];
-  for(const f of fixed) if(date.getMonth()===f.m && date.getDate()===f.d) return f.label;
+/* Map fraction to descriptive phase and to a CSS shadow shape */
+function phaseInfo(date){
+  const f = lunarAgeFraction(date);
+  const age = f * SYNODIC_MONTH;
+  let name = 'new';
+  if (age < 1.84566) name='new';
+  else if (age < 5.53699) name='waxing-crescent';
+  else if (age < 9.22831) name='first-quarter';
+  else if (age < 12.91963) name='waxing-gibbous';
+  else if (age < 16.61096) name='full';
+  else if (age < 20.30228) name='waning-gibbous';
+  else if (age < 23.99361) name='last-quarter';
+  else if (age < 27.68493) name='waning-crescent';
+  else name='new';
+  return { fraction: f, age, name };
+}
 
-  const eas = easterSunday(y);
-  const easMon = addDays(eas,1);
-  const asc = addDays(eas,39);
-  const whit = addDays(eas,50);
-  if(isSameDay(date,easMon)) return "Lundi de Pâques";
-  if(isSameDay(date,asc)) return "Ascension";
-  if(isSameDay(date,whit)) return "Lundi de Pentecôte";
+/* Create a CSS clip-path / shadow style for the moon shadow based on fraction.
+   We'll use an ellipse positioned left/right depending on waxing/waning.
+   fraction 0 => fully dark (new), 0.5 => fully lit (full).
+*/
+function shadowStyleForFraction(f){
+  // f in [0,1], 0=new, 0.5=full, 1=new
+  // Convert to -1..1 where -1 = new (dark on right), 0 = full, +1 = new (dark on left)
+  const x = (f - 0.5) * 2;
+  // We'll compute an ellipse offset and size
+  // offset controls where the dark ellipse center is (in %)
+  const offset = 50 + x * 40; // 10%..90%
+  // size controls how big the dark ellipse is
+  const size = 60 + Math.abs(x) * 40; // 60%..100%
+  // opacity for shadow
+  const opacity = 0.92 - Math.abs(x) * 0.3;
+  // For near-full (|x| small) make shadow thin
+  const blur = 0;
+  // Return CSS for background + clip-path fallback
+  // We'll use radial-gradient positioned to create the shadow silhouette
+  return {
+    background: `radial-gradient(closest-side at ${offset}% 50%, rgba(0,0,0,${opacity}) 0%, rgba(0,0,0,${opacity}) ${size}%, rgba(0,0,0,0) ${size+1}%)`
+  };
+}
+
+/* ---------- French holidays (fixed + movable) ---------- */
+function computeEaster(year){
+  // Meeus algorithm
+  const a = year % 19;
+  const b = Math.floor(year/100);
+  const c = year % 100;
+  const d = Math.floor(b/4);
+  const e = b % 4;
+  const f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3);
+  const h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c/4);
+  const k = c % 4;
+  const l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l)/451);
+  const month = Math.floor((h + l - 7*m + 114)/31); // 3=March,4=April
+  const day = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(year, month-1, day);
+}
+function getFrenchHolidays(year){
+  const easter = computeEaster(year);
+  const easterMonday = addDays(easter,1);
+  const ascension = addDays(easter,39);
+  const whitMonday = addDays(easter,50);
+  const fixed = [
+    [1,1,'Jour de l\\'an'],
+    [5,1,'Fête du Travail'],
+    [5,8,'Victoire 1945'],
+    [7,14,'Fête Nationale'],
+    [8,15,'Assomption'],
+    [11,1,'Toussaint'],
+    [11,11,'Armistice'],
+    [12,25,'Noël']
+  ];
+  const out = fixed.map(([m,d,label])=>({date:new Date(year,m-1,d),label}));
+  out.push({date:easterMonday,label:'Lundi de Pâques'});
+  out.push({date:ascension,label:'Ascension'});
+  out.push({date:whitMonday,label:'Lundi de Pentecôte'});
+  return out;
+}
+function holidayLabel(date, holidays){
+  for(const h of holidays) if(sameDay(h.date,date)) return h.label;
   return null;
 }
 
-/* ---------- Moon phase calculation (astronomical approximation) ----------
-   Returns fraction in [0,1] where 0=new moon, 0.5=full moon.
-   Uses a reference new moon and synodic month length.
-*/
-function moonPhaseFraction(date){
-  const synodic = 29.53058867;
-  // Reference new moon: 2000-01-06 18:14 UTC (widely used)
-  const ref = Date.UTC(2000,0,6,18,14,0);
-  const days = (Date.UTC(date.getFullYear(),date.getMonth(),date.getDate(),date.getHours(),date.getMinutes(),date.getSeconds()) - ref) / 86400000;
-  const phase = ((days % synodic) + synodic) % synodic;
-  return phase / synodic;
-}
+/* ---------- Build UI ---------- */
+const weekday = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+const months = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 
-function moonPhaseName(frac){
-  if(frac < 0.03 || frac > 0.97) return "Nouvelle Lune";
-  if(frac < 0.22) return "Premier croissant";
-  if(frac < 0.28) return "Premier quartier";
-  if(frac < 0.47) return "Gibbeuse croissante";
-  if(frac < 0.53) return "Pleine Lune";
-  if(frac < 0.72) return "Gibbeuse décroissante";
-  if(frac < 0.78) return "Dernier quartier";
-  return "Dernier croissant";
-}
-
-/* ---------- Formatting helpers ---------- */
-const MONTHS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
-const DOW_FR = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
-function formatStripeLabel(d){ return `${MONTHS[d.getMonth()].toUpperCase()} ${d.getFullYear()}` }
-function formatStripeDateMain(d){ return String(d.getDate()).padStart(2,"0") }
-function formatStripeDateSub(d){ return `${DOW_FR[d.getDay()].toUpperCase()} · ${String(d.getDate()).padStart(2,"0")} / ${String(d.getMonth()+1).padStart(2,"0")} / ${d.getFullYear()}` }
-function formatDowShort(d){ return ["Thu","Fri","Sat","Sun","Mon","Tue","Wed"][d.getDay()] || ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()] }
-
-/* ---------- Build the UI (8-day diagonal timeline centered on today) ---------- */
-(function build(){
+function build(){
   const now = new Date();
-  const today = startOfDay(now);
+  const year = now.getFullYear();
+  const holidays = getFrenchHolidays(year);
 
-  const banner = document.getElementById("p3p-banner");
-  const bannerMain = document.getElementById("p3p-banner-main");
-  const bannerSub = document.getElementById("p3p-banner-sub");
-  const stripeLabel = document.getElementById("p3p-stripe-label");
-  const dateMain = document.getElementById("p3p-date-main");
-  const dateSub = document.getElementById("p3p-date-sub");
-  const timeline = document.getElementById("p3p-timeline");
-  const moonText = document.getElementById("p3p-moon-text");
-  const bottomText = document.getElementById("p3p-bottom-text");
+  // big date
+  document.getElementById('big-day').textContent = now.getDate();
+  document.getElementById('big-month').textContent = months[now.getMonth()] + ' ' + year;
 
-  // Top stripe values
-  stripeLabel.textContent = formatStripeLabel(today);
-  dateMain.textContent = formatStripeDateMain(today);
-  dateSub.textContent = formatStripeDateSub(today);
+  // 7-day window centered on today
+  const days = [];
+  for(let i=-3;i<=3;i++) days.push(addDays(now,i));
 
-  // Holiday banner logic
-  const holiday = getFrenchHoliday(today);
-  const isWeekend = today.getDay() === 0 || today.getDay() === 6;
-  if(holiday || isWeekend){
-    banner.style.display = "inline-flex";
-    bannerMain.textContent = "DAY OFF";
-    bannerSub.textContent = (holiday ? holiday : "Week-end").toUpperCase();
-  } else {
-    banner.style.display = "none";
-  }
+  const timeline = document.getElementById('timeline');
+  timeline.innerHTML = '';
 
-  // Build 8-day timeline: 3 days before, today, 4 days after
-  const startOffset = -3;
-  const total = 8;
-  timeline.innerHTML = "";
-  for(let i=0;i<total;i++){
-    const offset = startOffset + i;
-    const d = addDays(today, offset);
-    const isToday = isSameDay(d,today);
-    const frac = moonPhaseFraction(new Date(d.getFullYear(),d.getMonth(),d.getDate(),12,0,0)); // midday for stability
-    const phaseName = moonPhaseName(frac);
+  let todayIsHoliday = false;
+  for(const d of days){
+    const isToday = sameDay(d, now);
+    const hol = holidayLabel(d, holidays);
+    if(isToday && hol) todayIsHoliday = true;
 
-    const day = document.createElement("div");
-    day.className = "p3p-day" + (isToday ? " current" : "");
-    day.setAttribute("role","button");
-    day.setAttribute("aria-label", `${DOW_FR[d.getDay()]} ${d.getDate()} - ${phaseName}`);
-    day.title = `${DOW_FR[d.getDay()]} ${d.getDate()} · ${phaseName}`;
+    const dayEl = document.createElement('div');
+    dayEl.className = 'day' + (hol ? ' holiday' : '') + (isToday ? ' today' : '');
+    dayEl.setAttribute('role','listitem');
 
-    const inner = document.createElement("div");
-    inner.className = "p3p-day-inner";
+    const labels = document.createElement('div');
+    labels.className = 'labels';
+    const wd = document.createElement('div'); wd.className='weekday'; wd.textContent = weekday[d.getDay()];
+    const md = document.createElement('div'); md.className='md'; md.textContent = pad(d.getDate()) + '/' + pad(d.getMonth()+1);
+    labels.appendChild(wd); labels.appendChild(md);
 
-    const dow = document.createElement("div");
-    dow.className = "p3p-dow";
-    dow.textContent = DOW_FR[d.getDay()].toUpperCase();
+    const moonWrap = document.createElement('div');
+    moonWrap.className = 'moon-wrap' + (isToday ? ' today' : '');
+    // moon element
+    const moon = document.createElement('div');
+    moon.className = 'moon';
+    // shadow element
+    const shadow = document.createElement('div');
+    shadow.className = 'shadow';
 
-    const num = document.createElement("div");
-    num.className = "p3p-num";
-    num.textContent = d.getDate();
+    // compute phase and style
+    const p = phaseInfo(d);
+    const styleObj = shadowStyleForFraction(p.fraction);
+    // apply style properties
+    for(const k in styleObj) shadow.style[k] = styleObj[k];
 
-    const moonWrap = document.createElement("div");
-    moonWrap.style.marginTop = "2px";
-    const moon = document.createElement("div");
-    moon.className = "p3p-moon";
-    // set CSS variable for mask transform (0..1)
-    moon.style.setProperty("--phase", frac.toFixed(4));
+    // add accessible tooltip
+    moon.setAttribute('aria-hidden','true');
+    dayEl.title = `${p.name.replace('-',' ')} • ${wd.textContent} ${md.textContent}` + (hol ? ` • ${hol}` : '') + (isToday ? ' • Aujourd\\'hui' : '');
+
+    moon.appendChild(shadow);
     moonWrap.appendChild(moon);
 
-    inner.appendChild(dow);
-    inner.appendChild(num);
-    inner.appendChild(moonWrap);
-    day.appendChild(inner);
-    timeline.appendChild(day);
+    dayEl.appendChild(labels);
+    dayEl.appendChild(moonWrap);
 
-    if(isToday){
-      moonText.textContent = phaseName.toUpperCase();
-      bottomText.textContent = "AUJOURD'HUI";
-    }
+    timeline.appendChild(dayEl);
   }
 
-  // Accessibility: allow keyboard focus on days
-  Array.from(timeline.querySelectorAll(".p3p-day")).forEach(el=>{
-    el.tabIndex = 0;
-    el.addEventListener("keydown", e=>{
-      if(e.key === "Enter" || e.key === " ") el.click();
-    });
-  });
-
-  // Auto-update at midnight local time so it "updates itself every day"
-  scheduleMidnightUpdate();
-})();
-
-/* ---------- Auto refresh at next midnight to update the calendar automatically ---------- */
-function scheduleMidnightUpdate(){
-  const now = new Date();
-  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 5); // 5s after midnight
-  const ms = next - now;
-  setTimeout(()=>{ location.reload(); }, ms);
+  // banner logic: show when today is weekend or holiday
+  const banner = document.getElementById('banner');
+  const isWeekend = now.getDay()===0 || now.getDay()===6;
+  if(todayIsHoliday || isWeekend){
+    banner.style.display = 'inline-flex';
+    // keep Japanese + English text as in the image
+    banner.querySelector('.jp').textContent = '休日';
+    banner.querySelector('.en').textContent = todayIsHoliday ? 'DAY OFF' : 'DAY OFF';
+  } else {
+    banner.style.display = 'none';
+  }
 }
 
-/* ---------- Notes on moon rendering:
-   - The moon uses a dark mask pseudo-element that is translated horizontally based on --phase.
-   - CSS transform is driven by the JS-calculated --phase variable (0..1).
-   - Current day gets a yellow moon and animated targeting ring.
-*/
+/* initial build */
+build();
+
+/* refresh at local midnight + small buffer to ensure date change */
+(function scheduleMidnight(){
+  const now = new Date();
+  const next = new Date(now);
+  next.setHours(24,0,5,0);
+  const ms = next - now;
+  setTimeout(function(){
+    build();
+    scheduleMidnight();
+  }, ms);
+})();
+
+/* Optional: observe resize to keep embed responsive in Notion/GitHub */
+(function responsiveFix(){
+  // nothing required; CSS uses width:100% and aspect-ratio for embed sizing
+})();
 </script>
 </body>
 </html>
+
 
