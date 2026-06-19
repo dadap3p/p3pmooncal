@@ -3,13 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Persona 3 Style Calendar — Navy + Divider + Seamless Moons</title>
+<title>Persona 3 Style Calendar — Single Navy Stripe</title>
 <style>
 :root{
-  --navy:#001f3f;        /* deep navy background requested */
-  --stripe1:#003f9f;
-  --stripe2:#0066ff;
-  --stripe3:#00284f;
+  --navy:#001f3f;
+  --single-blue:#0149a3; /* user requested hex */
   --white:#ffffff;
   --yellow:#ffe500;
   --accent:rgba(0,160,255,0.45);
@@ -34,20 +32,20 @@ html,body{height:100%;background:var(--navy);font-family:var(--font-sans);-webki
   border:1px solid rgba(255,255,255,0.03);
 }
 
-/* Diagonal stripes */
+/* Single diagonal stripe (replaces multiple stripes) */
 .stripe{
   position:absolute;
   left:-36%;
   width:210%;
-  height:280px;
+  height:320px;               /* slightly taller for stronger visual like original */
   transform:rotate(14deg);
   top:20%;
-  background:linear-gradient(90deg,var(--stripe1),var(--stripe2));
+  background: linear-gradient(90deg, var(--single-blue) 0%, rgba(1,73,163,0.95) 100%);
   z-index:2;
   mix-blend-mode:screen;
+  box-shadow: 0 18px 60px rgba(1,73,163,0.12) inset;
+  opacity:1;
 }
-.stripe.layer2{ top:46%; height:160px; left:-34%; background:linear-gradient(90deg,#00306f,#0058d6); z-index:1; opacity:.95; mix-blend-mode:screen; }
-.stripe.layer3{ top:62%; height:120px; left:-30%; background:var(--stripe3); z-index:0; opacity:.78; mix-blend-mode:screen; }
 
 /* Top-left holiday banner */
 .banner{
@@ -65,8 +63,8 @@ html,body{height:100%;background:var(--navy);font-family:var(--font-sans);-webki
   letter-spacing:2px;
   z-index:20;
   border-radius:6px;
-  background:linear-gradient(90deg,var(--stripe2),var(--stripe1));
-  box-shadow:0 6px 30px rgba(0,120,255,0.18);
+  background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  box-shadow:0 6px 30px rgba(0,0,0,0.25);
   font-size:clamp(14px,2.2vw,22px);
 }
 .banner .jp{ font-size:1.05em; opacity:0.98; }
@@ -154,7 +152,7 @@ html,body{height:100%;background:var(--navy);font-family:var(--font-sans);-webki
 .num{ font-weight:900; font-size:clamp(26px,3.8vw,60px); line-height:.9; }
 .week{ font-size:clamp(10px,1.2vw,14px); letter-spacing:4px; margin-top:6px; opacity:0.95; }
 
-/* Moon visuals - improved seamless rendering */
+/* Moon visuals - seamless */
 .moon{
   width:clamp(52px,6.6vw,92px);
   height:clamp(52px,6.6vw,92px);
@@ -165,13 +163,11 @@ html,body{height:100%;background:var(--navy);font-family:var(--font-sans);-webki
   display:block;
   background: radial-gradient(circle at 35% 35%, #f6f6f6 0%, #e6e6e6 35%, #d6d6d6 60%, #111 62%);
   box-shadow: inset 0 -6px 18px rgba(0,0,0,0.45);
-  /* smoother edges */
   -webkit-mask-image: radial-gradient(circle at 50% 50%, black 98%, transparent 100%);
   mask-image: radial-gradient(circle at 50% 50%, black 98%, transparent 100%);
 }
 
-/* Lit disc (before) and dark mask (after) tuned for seamless blending.
-   Use subtle radial gradients and a soft edge to avoid hard cut lines. */
+/* Lit disc and dark mask tuned for seamless blending */
 .moon::before{
   content:"";
   position:absolute;
@@ -208,7 +204,7 @@ html,body{height:100%;background:var(--navy);font-family:var(--font-sans);-webki
   width:calc(100% + 18px);
   height:calc(100% + 18px);
   border-radius:50%;
-  border:3px solid rgba(0,160,255,0.45);
+  border:3px solid var(--accent);
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
@@ -245,9 +241,8 @@ html,body{height:100%;background:var(--navy);font-family:var(--font-sans);-webki
 </head>
 <body>
   <div class="widget" role="region" aria-label="Persona 3 style calendar">
-    <div class="stripe"></div>
-    <div class="stripe layer2"></div>
-    <div class="stripe layer3"></div>
+    <!-- single blue stripe -->
+    <div class="stripe" aria-hidden="true"></div>
 
     <div class="banner" aria-hidden="false">
       <div class="jp">休日</div>
@@ -263,12 +258,12 @@ html,body{height:100%;background:var(--navy);font-family:var(--font-sans);-webki
     </div>
 
     <div class="timeline" aria-hidden="true"></div>
-    <div class="divider" aria-hidden="true"></div> <!-- white line in the middle of dates -->
+    <div class="divider" aria-hidden="true"></div>
     <div id="days" class="days" aria-live="polite"></div>
   </div>
 
 <script>
-/* ---------- Preset: keep demo behavior as before (adjust as needed) ---------- */
+/* Keep demoPreset behavior from previous version; change to "second" or "live" as needed */
 const demoPreset = "reload"; // "reload" | "second" | "live"
 const presets = {
   reload: { year:2009, month:6, day:7 },   // July 7, 2009
@@ -332,10 +327,7 @@ const holidayMap = frenchHolidays(centerDate.getFullYear());
 function holidayName(d){ return holidayMap.get(fmt(d)) || ""; }
 document.getElementById("holiday").textContent = holidayName(centerDate) || "Day off";
 
-/* ---------- Moon phase calculation (smoother mapping) ----------
-   Use cosine easing to produce smoother crescent/gibbous transitions.
-   Returns fraction 0..1 where 0 = new moon, 0.5 = full moon.
-*/
+/* Moon phase calculation */
 function moonPhaseFraction(date){
   const known = Date.UTC(2000,0,6,18,14,0);
   const t = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
@@ -345,27 +337,21 @@ function moonPhaseFraction(date){
   return phase;
 }
 
-/* Create moon element with smoother mask math */
+/* Create moon element */
 function createMoonEl(phaseFrac, isHighlighted){
   const moon = document.createElement("span");
   moon.className = "moon";
   const litColor = isHighlighted ? "var(--yellow)" : "#ffffff";
   moon.style.setProperty("--lit-color", litColor);
-
-  // Map phase to smooth offsets using cosine easing for softer edges
-  // phase p in [0,1] -> offset in [-60,60]
   const p = phaseFrac;
-  // Use eased value so crescents are smoother
-  const eased = (1 - Math.cos(2 * Math.PI * p)) / 2; // 0..1
-  // centerOffset: 0 at full moon (p=0.5 -> eased=1), extremes at new moon
-  const centerOffset = (0.5 - p) * 120 * (0.9 + 0.1 * Math.cos(2*Math.PI*p)); // tuned multiplier
+  const centerOffset = ((0.5 - p) * 2) * 60;
   const invert = -centerOffset * 0.92;
   moon.style.setProperty("--mask-offset", centerOffset + "%");
   moon.style.setProperty("--mask-invert", invert + "%");
   return moon;
 }
 
-/* ---------- Build 8-day diagonal timeline ---------- */
+/* Build 8-day diagonal timeline */
 const container = document.getElementById("days");
 let start = new Date(centerDate);
 start.setDate(centerDate.getDate() - 3);
@@ -377,7 +363,6 @@ for (let i = 0; i < 8; i++){
   const node = document.createElement("div");
   node.className = "day";
 
-  // Diagonal placement tuned visually
   const left = 12 + i * 10.5;
   const top = 82 - i * 9.6;
   node.style.left = left + "%";
@@ -391,16 +376,10 @@ for (let i = 0; i < 8; i++){
   w.className = "week";
   w.textContent = week[d.getDay()];
 
-  // Highlight rules per preset
   let highlight = false;
-  if (demoPreset === "reload") {
-    highlight = (d.getFullYear() === 2009 && d.getMonth() === 6 && d.getDate() === 7);
-  } else if (demoPreset === "second") {
-    highlight = (d.getFullYear() === 2026 && d.getMonth() === 5 && d.getDate() === 20);
-  } else {
-    const today = new Date();
-    highlight = (d.toDateString() === today.toDateString());
-  }
+  if (demoPreset === "reload") highlight = (d.getFullYear() === 2009 && d.getMonth() === 6 && d.getDate() === 7);
+  else if (demoPreset === "second") highlight = (d.getFullYear() === 2026 && d.getMonth() === 5 && d.getDate() === 20);
+  else { const today = new Date(); highlight = (d.toDateString() === today.toDateString()); }
 
   const moonEl = createMoonEl(moonPhaseFraction(d), highlight);
 
@@ -415,7 +394,6 @@ for (let i = 0; i < 8; i++){
   node.appendChild(w);
   node.appendChild(moonEl);
 
-  // Accessibility label includes holiday if present
   const h = holidayName(d);
   const label = `${d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}` + (h ? ` • ${h}` : "");
   node.setAttribute("aria-label", label);
@@ -442,6 +420,7 @@ document.querySelectorAll(".day").forEach(el=>{
 </script>
 </body>
 </html>
+
 
 
 
