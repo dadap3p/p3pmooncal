@@ -1,304 +1,303 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Persona‑style Lunar Calendar</title>
+<title>Lunar Calendar Embed</title>
 <style>
   :root{
-    --bg:#071028;
-    --panel:#0f2a56;
-    --accent:#2f6cff;
-    --accent-2:#1b3f7a;
-    --muted:#9fb0d6;
-    --white:#ffffff;
-    --holiday:#ff5b6b;
-    --today-yellow:#ffd94a;
+    --bg:#071226;
+    --band1:#0b2a4a;
+    --band2:#0f3a66;
+    --accent:#ffd84d;
+    --white: #ffffff;
+    --muted: rgba(255,255,255,0.12);
+    --red: #ff5b5b;
     --glass: rgba(255,255,255,0.04);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:transparent;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;color:var(--white)}
-  /* Embed container sized for Notion/GitHub embeds */
-  .embed {
-    width:100%;
-    max-width:820px;
-    margin:0 auto;
-    aspect-ratio:16/9;
-    padding:18px;
+    --shadow: 0 6px 18px rgba(0,0,0,0.6);
+    --font-sans: "Helvetica Neue", Arial, sans-serif;
   }
 
-  .card {
+  /* Container sized for Notion embed responsiveness */
+  html,body{height:100%;margin:0;background:var(--bg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  .embed-wrap{
+    box-sizing:border-box;
     width:100%;
     height:100%;
-    border-radius:14px;
-    background:
-      radial-gradient(1200px 600px at 10% 10%, rgba(47,108,255,0.08), transparent 8%),
-      linear-gradient(180deg,#071028 0%, #02040a 100%);
-    position:relative;
-    overflow:hidden;
-    box-shadow:0 8px 30px rgba(2,6,23,0.6);
+    min-height:360px;
     padding:18px;
-  }
-
-  /* Top-left Day off / Holiday banner */
-  .banner {
-    position:absolute;
-    left:18px;
-    top:18px;
-    display:inline-flex;
-    gap:10px;
-    align-items:center;
-    padding:8px 12px;
-    border-radius:999px;
-    background:linear-gradient(90deg,var(--accent),var(--accent-2));
-    color:#001;
-    font-weight:800;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    font-size:12px;
-    box-shadow:0 6px 18px rgba(20,40,90,0.35);
-    z-index:30;
-  }
-  .banner .jp { font-weight:900; font-size:11px; color:#fff; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6)); }
-  .banner .en { color:#fff; opacity:0.95; font-size:11px; }
-
-  /* Big date block bottom-left */
-  .big-date {
-    position:absolute;
-    left:18px;
-    bottom:18px;
-    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-    border-radius:10px;
-    padding:12px 14px;
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    z-index:20;
-    min-width:110px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.6);
-  }
-  .big-date .num { font-size:36px; font-weight:900; line-height:1; color:var(--white); }
-  .big-date .month { font-size:11px; text-transform:uppercase; color:var(--muted); letter-spacing:0.12em; }
-
-  /* Diagonal 7-day timeline */
-  .timeline-wrap {
-    position:absolute;
-    right:18px;
-    top:18px;
-    bottom:18px;
-    width:min(68%,520px);
     display:flex;
     align-items:center;
     justify-content:center;
-    pointer-events:none;
   }
 
-  .timeline {
+  /* Card that mimics Persona 3 calendar look */
+  .card{
     width:100%;
-    height:100%;
-    transform:skewY(-18deg);
+    max-width:980px;
+    aspect-ratio: 16/9;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.00) 30%),
+      repeating-linear-gradient(135deg, rgba(10,30,60,0.35) 0 40px, rgba(8,20,40,0.25) 40px 80px),
+      radial-gradient(1200px 400px at 10% 10%, rgba(255,255,255,0.02), transparent 10%),
+      var(--bg);
+    border-radius:12px;
+    padding:28px;
+    color:var(--white);
+    position:relative;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    gap:20px;
+  }
+
+  /* Diagonal blue bands in background */
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:-20%;
+    background:
+      linear-gradient( -25deg, rgba(10,60,120,0.12) 0 20%, rgba(6,30,60,0.06) 20% 40%, rgba(10,60,120,0.12) 40% 60% );
+    transform: rotate(-12deg) translateY(-6%);
+    pointer-events:none;
+    mix-blend-mode:screen;
+  }
+
+  /* Left: big date + timeline */
+  .left{
     display:flex;
     flex-direction:column;
     justify-content:space-between;
-    padding:28px 10px;
-    pointer-events:auto;
-  }
-
-  .day {
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
     gap:12px;
-    transform:skewY(18deg);
-    transition:transform .18s cubic-bezier(.2,.9,.2,1), filter .18s;
-    position:relative;
-    pointer-events:auto;
+    padding:6px 12px;
   }
 
-  .day:hover { transform:skewY(18deg) scale(1.06); z-index:40; filter:brightness(1.12); }
+  .big-date{
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+  }
+  .big-date .date-block{
+    font-weight:700;
+    letter-spacing:0.02em;
+  }
+  .big-date .year{
+    font-size:18px;
+    opacity:0.9;
+  }
+  .big-date .month{
+    font-size:42px;
+    line-height:1;
+  }
+  .big-date .day{
+    font-size:86px;
+    line-height:0.9;
+    color:var(--white);
+    text-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  }
 
-  .labels {
-    text-align:right;
-    min-width:72px;
-    color:var(--muted);
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:0.12em;
+  .subtitle{
+    font-size:13px;
+    opacity:0.9;
+    margin-top:6px;
+  }
+
+  /* Top-left holiday banner */
+  .holiday-banner{
+    position:absolute;
+    left:18px;
+    top:18px;
+    background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    color:var(--white);
+    padding:8px 12px;
+    border-radius:8px;
+    font-weight:700;
+    font-size:13px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    z-index:6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .holiday-banner .jp{opacity:0.95;font-weight:800}
+  .holiday-banner .en{opacity:0.9;font-size:12px}
+
+  /* Right: week timeline */
+  .right{
+    padding:12px;
     display:flex;
     flex-direction:column;
-    gap:2px;
+    gap:12px;
+    align-items:center;
+    justify-content:center;
   }
-  .labels .weekday { font-weight:800; color:var(--white); }
-  .labels .md { font-size:10px; opacity:.9; }
 
-  /* Moon container */
-  .moon-wrap {
-    width:48px;
-    height:48px;
+  .week{
+    width:100%;
+    display:flex;
+    gap:10px;
+    transform: rotate(-8deg);
+    transform-origin:left center;
+    padding-left:18px;
+  }
+
+  .day{
+    --size:84px;
+    width:var(--size);
+    height:var(--size);
+    min-width:var(--size);
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     border-radius:50%;
-    position:relative;
     display:flex;
     align-items:center;
     justify-content:center;
-    background:linear-gradient(180deg,#e6eefc 0%, #b6c6e6 40%, #7b86a0 100%);
-    box-shadow:0 6px 18px rgba(0,0,0,0.6), inset 0 -6px 18px rgba(0,0,0,0.12);
-    overflow:hidden;
-    transition:transform .18s;
+    position:relative;
+    transition:transform .18s ease, box-shadow .18s ease;
+    cursor:pointer;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.6);
+    border: 2px solid rgba(255,255,255,0.03);
   }
 
-  /* small ring for hover pop */
-  .day:hover .moon-wrap { transform:scale(1.06); }
+  .day:hover{ transform: scale(1.18) translateY(-6px); z-index:8; box-shadow: 0 18px 36px rgba(0,0,0,0.7) }
 
-  /* targeting ring for today */
-  .moon-wrap.today::after{
-    content:"";
+  .day .label{
     position:absolute;
-    inset:-8px;
-    border-radius:50%;
-    border:2px solid var(--today-yellow);
-    box-shadow:0 0 18px rgba(255,217,74,0.85);
-    animation:target 1.6s ease-out infinite;
+    top:8px;
+    left:10px;
+    font-size:11px;
+    color:rgba(255,255,255,0.85);
+    font-weight:700;
+    letter-spacing:0.02em;
   }
-  @keyframes target {
-    0%{ transform:scale(.9); opacity:1 }
-    70%{ transform:scale(1.18); opacity:0 }
-    100%{ transform:scale(1.18); opacity:0 }
+  .day .num{
+    position:absolute;
+    bottom:10px;
+    right:12px;
+    font-weight:800;
+    font-size:18px;
+    color:rgba(255,255,255,0.95);
   }
 
-  /* moon face (base) */
-  .moon {
-    width:86%;
-    height:86%;
+  /* Moon visual inside day */
+  .moon{
+    width:46px;
+    height:46px;
     border-radius:50%;
+    background:linear-gradient(180deg,#111 0%, #222 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
     position:relative;
     overflow:hidden;
+  }
+
+  /* actual moon disc and phase mask */
+  .moon .disc{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background:var(--muted);
+    position:relative;
+    z-index:1;
     display:block;
-    transform:translateZ(0);
   }
-
-  /* shadow overlay used to create phases via clip-path */
-  .moon .shadow {
+  .moon .lit{
     position:absolute;
-    inset:0;
-    background:#000;
-    mix-blend-mode:normal;
-    transition:all .28s ease;
+    top:0;left:0;right:0;bottom:0;
+    border-radius:50%;
+    background:var(--white);
+    transform-origin:center;
+    z-index:2;
+    mix-blend-mode:screen;
   }
 
-  /* yellow tint for current day */
-  .moon-wrap.today .moon {
-    background: radial-gradient(circle at 30% 30%, #fff7c0 0%, #ffd94a 40%, #c79a2a 100%);
+  /* Yellow current-day moon */
+  .day.current .moon .disc{ background: radial-gradient(circle at 30% 25%, #fff9d6 0%, var(--accent) 40%, #f0c84a 70%); box-shadow:0 6px 18px rgba(255,200,80,0.12) }
+
+  /* Sunday red */
+  .day.sunday .num{ color:var(--red) }
+
+  /* Targeting ring animation */
+  .target{
+    position:absolute;
+    inset:-6px;
+    border-radius:50%;
+    pointer-events:none;
+    opacity:0;
+    transform:scale(.9);
+    transition:opacity .18s ease, transform .18s ease;
+  }
+  .day.targeted .target{
+    opacity:1;
+    animation: ring 1.6s infinite;
+  }
+  @keyframes ring{
+    0%{ box-shadow: 0 0 0 0 rgba(255,216,77,0.9) }
+    70%{ box-shadow: 0 0 0 18px rgba(255,216,77,0.0) }
+    100%{ box-shadow: 0 0 0 0 rgba(255,216,77,0.0) }
   }
 
-  /* holiday accent */
-  .day.holiday .labels .weekday,
-  .day.holiday .labels .md { color:var(--holiday); }
+  /* small legend / caption */
+  .caption{
+    font-size:12px;
+    opacity:0.85;
+    margin-top:6px;
+  }
 
-  /* small responsive tweaks */
-  @media (max-width:640px){
-    .embed{max-width:520px}
-    .moon-wrap{width:42px;height:42px}
-    .big-date .num{font-size:28px}
-    .labels{min-width:60px;font-size:10px}
+  /* Responsive adjustments */
+  @media (max-width:880px){
+    .card{ grid-template-columns: 1fr; aspect-ratio: 4/5; padding:14px; gap:12px }
+    .right{ order:2; transform:none }
+    .week{ transform:none; justify-content:space-between; padding-left:0 }
+    .day{ --size:64px }
+    .big-date .day{ font-size:64px }
   }
   @media (max-width:420px){
-    .timeline-wrap{display:block; right:12px; top:12px; bottom:12px; width:62%}
-    .big-date{left:12px; bottom:12px}
-    .banner{left:12px; top:12px; padding:6px 10px; font-size:11px}
+    .day{ --size:56px }
+    .big-date .day{ font-size:48px }
+    .card{ padding:10px }
   }
 
   /* small accessibility focus */
-  .day:focus-within, .day:focus { outline:2px solid rgba(255,255,255,0.06); }
+  .day:focus{ outline:2px solid rgba(255,255,255,0.08); transform:scale(1.12) }
 </style>
 </head>
 <body>
-  <div class="embed" aria-hidden="false">
-    <div class="card" role="application" aria-label="Lunar calendar">
-      <div class="banner" id="banner" style="display:none">
-        <span class="jp">休日</span>
-        <span class="en">DAY OFF</span>
+<div class="embed-wrap">
+  <div class="card" id="calendarCard" role="application" aria-label="Lunar calendar">
+    <div class="left">
+      <div class="big-date" aria-hidden="false">
+        <div class="date-block">
+          <div class="year" id="yearText">2009</div>
+          <div class="month" id="monthText">July</div>
+        </div>
+        <div class="day" style="display:flex;align-items:flex-end;">
+          <div class="day-number" id="dayText" style="font-size:86px;font-weight:900;color:var(--white)">7</div>
+        </div>
+      </div>
+      <div class="subtitle" id="subtitleText">Daily Life Calendar</div>
+      <div class="caption" id="captionText">7-day diagonal timeline • Hover to enlarge • Moon phases calculated</div>
+    </div>
+
+    <div class="right" aria-hidden="false">
+      <div id="holidayBanner" class="holiday-banner" style="display:none;">
+        <div class="jp" id="holidayJP">休日</div>
+        <div class="en" id="holidayEN">Day off</div>
       </div>
 
-      <div class="big-date" aria-hidden="true">
-        <div class="num" id="big-day">--</div>
-        <div class="month" id="big-month">--</div>
-      </div>
-
-      <div class="timeline-wrap">
-        <div class="timeline" id="timeline" role="list" aria-label="7 day timeline"></div>
+      <div class="week" id="weekRow" role="list" aria-label="Week timeline">
+        <!-- days inserted by JS -->
       </div>
     </div>
   </div>
+</div>
 
 <script>
-/* ---------- Utilities ---------- */
-function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
-function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
-function pad(n){ return String(n).padStart(2,'0'); }
+/* ---------- Utilities: date, easter, holidays, moon phase ---------- */
 
-/* ---------- Lunar phase calculation (accurate synodic method) ----------
-   Uses Julian date and synodic month to compute lunar age fraction (0..1).
-   Then we compute a phase mask for CSS: we will set shadow position/shape
-   based on the phase fraction (0=new, 0.5=full).
-*/
-const SYNODIC_MONTH = 29.530588853;
-
-function toJulianDate(date){
-  // Convert to UTC midnight fraction
-  return date.getTime()/86400000 + 2440587.5;
-}
-function lunarAgeFraction(date){
-  // reference new moon 2000-01-06 18:14 UTC (JD 2451550.1) is common anchor
-  const jd = toJulianDate(date);
-  const daysSince = jd - 2451550.1;
-  const frac = (daysSince / SYNODIC_MONTH) % 1;
-  return frac < 0 ? frac + 1 : frac;
-}
-
-/* Map fraction to descriptive phase and to a CSS shadow shape */
-function phaseInfo(date){
-  const f = lunarAgeFraction(date);
-  const age = f * SYNODIC_MONTH;
-  let name = 'new';
-  if (age < 1.84566) name='new';
-  else if (age < 5.53699) name='waxing-crescent';
-  else if (age < 9.22831) name='first-quarter';
-  else if (age < 12.91963) name='waxing-gibbous';
-  else if (age < 16.61096) name='full';
-  else if (age < 20.30228) name='waning-gibbous';
-  else if (age < 23.99361) name='last-quarter';
-  else if (age < 27.68493) name='waning-crescent';
-  else name='new';
-  return { fraction: f, age, name };
-}
-
-/* Create a CSS clip-path / shadow style for the moon shadow based on fraction.
-   We'll use an ellipse positioned left/right depending on waxing/waning.
-   fraction 0 => fully dark (new), 0.5 => fully lit (full).
-*/
-function shadowStyleForFraction(f){
-  // f in [0,1], 0=new, 0.5=full, 1=new
-  // Convert to -1..1 where -1 = new (dark on right), 0 = full, +1 = new (dark on left)
-  const x = (f - 0.5) * 2;
-  // We'll compute an ellipse offset and size
-  // offset controls where the dark ellipse center is (in %)
-  const offset = 50 + x * 40; // 10%..90%
-  // size controls how big the dark ellipse is
-  const size = 60 + Math.abs(x) * 40; // 60%..100%
-  // opacity for shadow
-  const opacity = 0.92 - Math.abs(x) * 0.3;
-  // For near-full (|x| small) make shadow thin
-  const blur = 0;
-  // Return CSS for background + clip-path fallback
-  // We'll use radial-gradient positioned to create the shadow silhouette
-  return {
-    background: `radial-gradient(closest-side at ${offset}% 50%, rgba(0,0,0,${opacity}) 0%, rgba(0,0,0,${opacity}) ${size}%, rgba(0,0,0,0) ${size+1}%)`
-  };
-}
-
-/* ---------- French holidays (fixed + movable) ---------- */
-function computeEaster(year){
-  // Meeus algorithm
+/* Compute Easter Sunday (Western) for a given year (Anonymous Gregorian algorithm) */
+function easterSunday(year){
   const a = year % 19;
   const b = Math.floor(year/100);
   const c = year % 100;
@@ -311,134 +310,263 @@ function computeEaster(year){
   const k = c % 4;
   const l = (32 + 2*e + 2*i - h - k) % 7;
   const m = Math.floor((a + 11*h + 22*l)/451);
-  const month = Math.floor((h + l - 7*m + 114)/31); // 3=March,4=April
+  const month = Math.floor((h + l - 7*m + 114)/31);
   const day = ((h + l - 7*m + 114) % 31) + 1;
   return new Date(year, month-1, day);
 }
-function getFrenchHolidays(year){
-  const easter = computeEaster(year);
-  const easterMonday = addDays(easter,1);
-  const ascension = addDays(easter,39);
-  const whitMonday = addDays(easter,50);
-  const fixed = [
-    [1,1,'Jour de l\\'an'],
-    [5,1,'Fête du Travail'],
-    [5,8,'Victoire 1945'],
-    [7,14,'Fête Nationale'],
-    [8,15,'Assomption'],
-    [11,1,'Toussaint'],
-    [11,11,'Armistice'],
-    [12,25,'Noël']
-  ];
-  const out = fixed.map(([m,d,label])=>({date:new Date(year,m-1,d),label}));
-  out.push({date:easterMonday,label:'Lundi de Pâques'});
-  out.push({date:ascension,label:'Ascension'});
-  out.push({date:whitMonday,label:'Lundi de Pentecôte'});
-  return out;
+
+/* Add days to date */
+function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+
+/* French holidays (fixed + movable) */
+function frenchHolidays(year){
+  const holidays = {};
+  function add(date, name){ const key = date.toISOString().slice(0,10); holidays[key] = name; }
+
+  // Fixed
+  add(new Date(year,0,1), "Nouvel An"); // Jan 1
+  add(new Date(year,4,1), "Fête du Travail"); // May 1
+  add(new Date(year,4,8), "Victoire 1945"); // May 8
+  add(new Date(year,6,14), "Fête Nationale"); // Jul 14
+  add(new Date(year,7,15), "Assomption"); // Aug 15
+  add(new Date(year,10,1), "Toussaint"); // Nov 1
+  add(new Date(year,10,11), "Armistice"); // Nov 11
+  add(new Date(year,11,25), "Noël"); // Dec 25
+
+  // Movable
+  const easter = easterSunday(year);
+  add(addDays(easter, 1), "Lundi de Pâques"); // Easter Monday
+  add(addDays(easter, 39), "Ascension"); // Ascension (Easter + 39)
+  add(addDays(easter, 50), "Lundi de Pentecôte"); // Whit Monday (Pentecost Monday)
+
+  return holidays;
 }
-function holidayLabel(date, holidays){
-  for(const h of holidays) if(sameDay(h.date,date)) return h.label;
-  return null;
+
+/* Format date key YYYY-MM-DD */
+function keyOf(d){ return d.toISOString().slice(0,10); }
+
+/* Moon phase calculation (approximate) */
+/* Uses simple synodic month method relative to known new moon epoch */
+function moonPhaseInfo(date){
+  // epoch: 2000-01-06 18:14 UTC (approx known new moon)
+  const epoch = Date.UTC(2000,0,6,18,14,0);
+  const synodic = 29.53058867 * 24*3600*1000; // ms
+  const t = date.getTime();
+  const diff = t - epoch;
+  const age = (diff % synodic + synodic) % synodic; // ms into cycle
+  const fraction = age / synodic; // 0..1
+  const ageDays = fraction * 29.53058867;
+  // Determine phase name
+  let phaseName = "New Moon";
+  if(ageDays < 1.84566) phaseName = "New Moon";
+  else if(ageDays < 5.53699) phaseName = "Waxing Crescent";
+  else if(ageDays < 9.22831) phaseName = "First Quarter";
+  else if(ageDays < 12.91963) phaseName = "Waxing Gibbous";
+  else if(ageDays < 16.61096) phaseName = "Full Moon";
+  else if(ageDays < 20.30228) phaseName = "Waning Gibbous";
+  else if(ageDays < 23.99361) phaseName = "Last Quarter";
+  else if(ageDays < 27.68493) phaseName = "Waning Crescent";
+  else phaseName = "New Moon";
+  return { fraction, ageDays, phaseName };
 }
 
-/* ---------- Build UI ---------- */
-const weekday = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
-const months = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+/* Render moon phase by adjusting lit mask width and offset */
+function renderMoonPhaseElement(el, fraction){
+  // fraction 0..1 where 0 = new moon, 0.5 = full moon
+  // We'll create a lit element and mask it by shifting and scaling
+  const lit = el.querySelector('.lit');
+  // Convert fraction to visible lit proportion: full at 0.5
+  // For simplicity: litWidth = Math.abs(0.5 - fraction) mirrored
+  const visible = Math.abs(0.5 - fraction);
+  // We'll compute a clip by using transform scaleX and translateX
+  // When fraction < 0.5 (waxing to full), lit grows from right; when >0.5, lit shrinks from left
+  const scale = 1 - (visible * 2); // 0..1 where 1 = full, 0 = new
+  // clamp
+  const s = Math.max(0, Math.min(1, scale));
+  // Determine direction
+  if(fraction <= 0.5){
+    // waxing: lit centered, mask to show right side
+    lit.style.transform = `translateX(${(0.5 - fraction)*40}px) scaleX(${s})`;
+    lit.style.left = '0';
+  } else {
+    // waning: invert
+    lit.style.transform = `translateX(${-(fraction - 0.5)*40}px) scaleX(${s})`;
+    lit.style.left = '0';
+  }
+  // adjust opacity slightly
+  lit.style.opacity = 0.98;
+}
 
-function build(){
-  const now = new Date();
-  const year = now.getFullYear();
-  const holidays = getFrenchHolidays(year);
+/* ---------- Build week UI ---------- */
 
-  // big date
-  document.getElementById('big-day').textContent = now.getDate();
-  document.getElementById('big-month').textContent = months[now.getMonth()] + ' ' + year;
-
-  // 7-day window centered on today
+function buildWeek(centerDate){
+  const weekRow = document.getElementById('weekRow');
+  weekRow.innerHTML = '';
+  // centerDate is the date shown as big date; we will show 7-day window centered on it (3 days before, 3 after)
   const days = [];
-  for(let i=-3;i<=3;i++) days.push(addDays(now,i));
-
-  const timeline = document.getElementById('timeline');
-  timeline.innerHTML = '';
-
-  let todayIsHoliday = false;
-  for(const d of days){
-    const isToday = sameDay(d, now);
-    const hol = holidayLabel(d, holidays);
-    if(isToday && hol) todayIsHoliday = true;
-
-    const dayEl = document.createElement('div');
-    dayEl.className = 'day' + (hol ? ' holiday' : '') + (isToday ? ' today' : '');
-    dayEl.setAttribute('role','listitem');
-
-    const labels = document.createElement('div');
-    labels.className = 'labels';
-    const wd = document.createElement('div'); wd.className='weekday'; wd.textContent = weekday[d.getDay()];
-    const md = document.createElement('div'); md.className='md'; md.textContent = pad(d.getDate()) + '/' + pad(d.getMonth()+1);
-    labels.appendChild(wd); labels.appendChild(md);
-
-    const moonWrap = document.createElement('div');
-    moonWrap.className = 'moon-wrap' + (isToday ? ' today' : '');
-    // moon element
-    const moon = document.createElement('div');
-    moon.className = 'moon';
-    // shadow element
-    const shadow = document.createElement('div');
-    shadow.className = 'shadow';
-
-    // compute phase and style
-    const p = phaseInfo(d);
-    const styleObj = shadowStyleForFraction(p.fraction);
-    // apply style properties
-    for(const k in styleObj) shadow.style[k] = styleObj[k];
-
-    // add accessible tooltip
-    moon.setAttribute('aria-hidden','true');
-    dayEl.title = `${p.name.replace('-',' ')} • ${wd.textContent} ${md.textContent}` + (hol ? ` • ${hol}` : '') + (isToday ? ' • Aujourd\\'hui' : '');
-
-    moon.appendChild(shadow);
-    moonWrap.appendChild(moon);
-
-    dayEl.appendChild(labels);
-    dayEl.appendChild(moonWrap);
-
-    timeline.appendChild(dayEl);
+  for(let i=-3;i<=3;i++){
+    const d = new Date(centerDate);
+    d.setDate(centerDate.getDate()+i);
+    days.push(d);
   }
 
-  // banner logic: show when today is weekend or holiday
-  const banner = document.getElementById('banner');
-  const isWeekend = now.getDay()===0 || now.getDay()===6;
-  if(todayIsHoliday || isWeekend){
-    banner.style.display = 'inline-flex';
-    // keep Japanese + English text as in the image
-    banner.querySelector('.jp').textContent = '休日';
-    banner.querySelector('.en').textContent = todayIsHoliday ? 'DAY OFF' : 'DAY OFF';
+  const holidays = frenchHolidays(centerDate.getFullYear());
+  // If week spans year boundary, include next year's movable holidays
+  const nextYear = centerDate.getFullYear()+1;
+  const prevYear = centerDate.getFullYear()-1;
+  Object.assign(holidays, frenchHolidays(nextYear));
+  Object.assign(holidays, frenchHolidays(prevYear));
+
+  days.forEach((d, idx) => {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'day';
+    dayEl.setAttribute('role','listitem');
+    const weekday = d.getDay(); // 0 Sun .. 6 Sat
+    if(weekday === 0) dayEl.classList.add('sunday');
+
+    // mark current day
+    const today = new Date();
+    const isToday = keyOf(d) === keyOf(today);
+    if(isToday) dayEl.classList.add('current');
+
+    // targeting ring: animate on the center day (index 3)
+    if(idx === 3) dayEl.classList.add('targeted');
+
+    // label (weekday short)
+    const label = document.createElement('div');
+    label.className = 'label';
+    const weekdayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    label.textContent = `${d.getDate()} ${weekdayNames[weekday]}`;
+    dayEl.appendChild(label);
+
+    // moon container
+    const moonWrap = document.createElement('div');
+    moonWrap.className = 'moon';
+    const disc = document.createElement('div');
+    disc.className = 'disc';
+    const lit = document.createElement('div');
+    lit.className = 'lit';
+    moonWrap.appendChild(disc);
+    moonWrap.appendChild(lit);
+    dayEl.appendChild(moonWrap);
+
+    // numeric day in corner
+    const num = document.createElement('div');
+    num.className = 'num';
+    num.textContent = d.getDate();
+    dayEl.appendChild(num);
+
+    // target ring element
+    const target = document.createElement('div');
+    target.className = 'target';
+    dayEl.appendChild(target);
+
+    // holiday marker
+    const k = keyOf(d);
+    if(holidays[k]){
+      const dot = document.createElement('div');
+      dot.style.position='absolute';
+      dot.style.top='10px';
+      dot.style.right='10px';
+      dot.style.width='8px';
+      dot.style.height='8px';
+      dot.style.borderRadius='50%';
+      dot.style.background = 'linear-gradient(180deg,#ff9b9b,#ff5b5b)';
+      dayEl.appendChild(dot);
+      dayEl.title = holidays[k];
+    }
+
+    // Sunday highlight (red number)
+    if(weekday === 0){
+      dayEl.classList.add('sunday');
+    }
+
+    // hover: show tooltip with phase name
+    const phaseInfo = moonPhaseInfo(d);
+    dayEl.setAttribute('aria-label', `${d.toDateString()} • ${phaseInfo.phaseName}`);
+
+    // append
+    weekRow.appendChild(dayEl);
+
+    // render moon phase
+    renderMoonPhaseElement(dayEl, phaseInfo.fraction);
+
+    // click to focus (for keyboard)
+    dayEl.addEventListener('click', ()=> {
+      // set as targeted briefly
+      weekRow.querySelectorAll('.day').forEach(x=>x.classList.remove('targeted'));
+      dayEl.classList.add('targeted');
+      // update big date to clicked day
+      updateBigDate(d);
+    });
+  });
+
+  // update holiday banner if center day is holiday
+  const centerKey = keyOf(centerDate);
+  const holidaysAll = frenchHolidays(centerDate.getFullYear());
+  Object.assign(holidaysAll, frenchHolidays(centerDate.getFullYear()+1));
+  Object.assign(holidaysAll, frenchHolidays(centerDate.getFullYear()-1));
+  const banner = document.getElementById('holidayBanner');
+  if(holidaysAll[centerKey]){
+    banner.style.display = 'flex';
+    document.getElementById('holidayJP').textContent = '休日';
+    document.getElementById('holidayEN').textContent = holidaysAll[centerKey];
   } else {
     banner.style.display = 'none';
   }
 }
 
-/* initial build */
-build();
+/* Update the large date display */
+function updateBigDate(d){
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  document.getElementById('yearText').textContent = d.getFullYear();
+  document.getElementById('monthText').textContent = months[d.getMonth()];
+  document.getElementById('dayText').textContent = d.getDate();
+  document.getElementById('subtitleText').textContent = `${d.toDateString()}`;
+  // rebuild week centered on this date
+  buildWeek(d);
+}
 
-/* refresh at local midnight + small buffer to ensure date change */
-(function scheduleMidnight(){
+/* Auto-update every day at midnight local time */
+function scheduleMidnightRefresh(){
   const now = new Date();
-  const next = new Date(now);
-  next.setHours(24,0,5,0);
-  const ms = next - now;
-  setTimeout(function(){
-    build();
-    scheduleMidnight();
-  }, ms);
-})();
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0,0,2);
+  const ms = tomorrow - now;
+  setTimeout(()=>{ init(); scheduleMidnightRefresh(); }, ms);
+}
 
-/* Optional: observe resize to keep embed responsive in Notion/GitHub */
-(function responsiveFix(){
-  // nothing required; CSS uses width:100% and aspect-ratio for embed sizing
-})();
+/* Initialize calendar centered on today */
+function init(){
+  const today = new Date();
+  updateBigDate(today);
+}
+
+/* Kick off */
+init();
+scheduleMidnightRefresh();
+
+/* Accessibility: keyboard navigation for days */
+document.addEventListener('keydown', (e)=>{
+  const focused = document.activeElement;
+  if(!focused || !focused.classList || !focused.classList.contains('day')) return;
+  if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+    const days = Array.from(document.querySelectorAll('.week .day'));
+    const idx = days.indexOf(focused);
+    let next = idx;
+    if(e.key === 'ArrowRight') next = Math.min(days.length-1, idx+1);
+    else next = Math.max(0, idx-1);
+    days[next].focus();
+  }
+});
+
+/* Make days focusable */
+setTimeout(()=> {
+  document.querySelectorAll('.week .day').forEach(d=>d.setAttribute('tabindex','0'));
+}, 200);
+
 </script>
 </body>
 </html>
+
 
 
