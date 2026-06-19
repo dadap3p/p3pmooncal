@@ -1,10 +1,9 @@
-<!-- Paste this full file (or replace the .divider CSS in your existing file) -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Persona 3 Style Calendar — Single Navy Stripe + Dark Thin Divider</title>
+<title>Persona 3 Style Calendar — Dark Thin Diagonal Line</title>
 <style>
 :root{
   --navy:#001f3f;
@@ -13,8 +12,8 @@
   --yellow:#ffe500;
   --accent:rgba(0,160,255,0.45);
   --shadow: 0 14px 48px rgba(0,0,0,0.65);
+  --divider-blue:#013a6b; /* darker blue for the diagonal line */
   --font-sans: "Inter", "Arial", sans-serif;
-  --divider-dark: #01294a; /* darker thin line color */
 }
 
 /* Reset + container */
@@ -34,7 +33,7 @@ html,body{height:100%;background:var(--navy);font-family:var(--font-sans);-webki
   border:1px solid rgba(255,255,255,0.03);
 }
 
-/* Single diagonal stripe */
+/* Single diagonal stripe (main blue band) */
 .stripe{
   position:absolute;
   left:-36%;
@@ -105,38 +104,37 @@ html,body{height:100%;background:var(--navy);font-family:var(--font-sans);-webki
   opacity:0.98;
 }
 
-/* Diagonal timeline */
+/* Diagonal timeline (subtle, kept for depth) */
 .timeline{
   position:absolute;
   width:92%;
-  height:6px;
-  background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.18));
+  height:4px; /* slightly thinner than before */
+  background:linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.12));
   transform:rotate(-35deg);
   left:4%;
   top:58%;
   z-index:9;
   border-radius:6px;
-  box-shadow:0 6px 30px rgba(0,0,0,0.6);
+  box-shadow:0 6px 20px rgba(0,0,0,0.45);
 }
 
-/* Darker, thinner divider line centered on the diagonal timeline
+/* Darker, thinner diagonal line opposite the calendar
    - thinner: 1px
-   - darker: custom navy-blue (#01294a)
-   - subtle inner highlight to mimic the original's crisp edge */
+   - darker blue: var(--divider-blue)
+   - positioned on the same diagonal but visually opposite the date block */
 .divider{
   position:absolute;
   width:92%;
-  height:1px;                       /* thinner line */
-  background: var(--divider-dark);  /* darker color */
+  height:1px;                       /* thinner line requested */
+  background: var(--divider-blue);  /* darker blue */
   transform:rotate(-35deg);
   left:4%;
   top:58%;
   z-index:18;
   opacity:0.98;
   mix-blend-mode:multiply;
-  box-shadow:
-    0 0 0 rgba(0,0,0,0),            /* no outer glow */
-    inset 0 1px 0 rgba(255,255,255,0.03); /* tiny inner highlight for crispness */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02); /* tiny inner highlight for crisp edge */
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.25));
 }
 
 /* Days container */
@@ -348,6 +346,7 @@ document.querySelectorAll(".day").forEach(el=>{ el.tabIndex=0; el.addEventListen
 </script>
 </body>
 </html>
+
 
 
 
