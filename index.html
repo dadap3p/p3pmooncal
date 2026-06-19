@@ -6,21 +6,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <style>
 :root {
-  --bg-blue: #0b1a3a;
-  --bg-blue-dark: #050a1c;
-  --accent-blue: #1f6bff;
-  --accent-blue-light: #4ea3ff;
+  --bg-deep: #020713;
+  --bg-blue: #07152f;
+  --stripe-blue: #1b4fb0;
+  --stripe-blue-light: #3f7fff;
   --accent-yellow: #ffd94a;
+  --accent-red: #ff4b6e;
+  --accent-orange: #ff9b4b;
   --text-white: #ffffff;
   --text-muted: #9fb4ff;
   --ring-blue: #4ea3ff;
-  --day-size: 4.2rem;
-  --gap: 1.1rem;
-  --stripe-angle: -35deg;
+  --day-size: 4.4rem;
+  --gap: 1.2rem;
+  --diag-angle: -32deg;
   --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Reset-ish */
+/* Reset */
 *,
 *::before,
 *::after {
@@ -41,60 +43,55 @@ body {
   font-family: var(--font-main);
 }
 
-/* Container tuned for Notion/GitHub embeds */
-.p3p-calendar-wrapper {
+/* Wrapper tuned for Notion/GitHub embeds */
+.p3p-wrapper {
   width: 100%;
-  max-width: 900px;
+  max-width: 960px;
   aspect-ratio: 16 / 7;
   padding: 0.75rem;
 }
 
 /* Main card */
-.p3p-calendar {
+.p3p-card {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 0.75rem;
+  border-radius: 0.9rem;
   overflow: hidden;
   color: var(--text-white);
-  background:
-    repeating-linear-gradient(
-      var(--stripe-angle),
-      #0d1f4a 0,
-      #0d1f4a 10px,
-      #07112a 10px,
-      #07112a 20px
-    );
+  background: radial-gradient(circle at 10% 0%, #1b2c5a 0, #020713 55%, #000 100%);
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.06),
-    0 18px 40px rgba(0,0,0,0.7);
+    0 22px 50px rgba(0,0,0,0.85);
 }
 
-/* Blue diagonal layers */
-.p3p-calendar::before,
-.p3p-calendar::after {
+/* Blue diagonal stripe layers */
+.p3p-card::before,
+.p3p-card::after {
   content: "";
   position: absolute;
   inset: -40%;
-  background: linear-gradient(
-    var(--stripe-angle),
-    rgba(31,107,255,0.35),
-    transparent 40%
-  );
+  background:
+    linear-gradient(
+      var(--diag-angle),
+      rgba(31,107,255,0.45),
+      transparent 40%
+    );
   mix-blend-mode: screen;
-  opacity: 0.7;
+  opacity: 0.8;
   pointer-events: none;
 }
-.p3p-calendar::after {
-  background: linear-gradient(
-    var(--stripe-angle),
-    rgba(10,40,120,0.9),
-    transparent 55%
-  );
-  opacity: 0.9;
+.p3p-card::after {
+  background:
+    linear-gradient(
+      var(--diag-angle),
+      rgba(7,21,47,0.95),
+      transparent 55%
+    );
+  opacity: 1;
 }
 
-/* Layout */
+/* Inner layout */
 .p3p-inner {
   position: relative;
   width: 100%;
@@ -105,7 +102,7 @@ body {
   justify-content: space-between;
 }
 
-/* Top row: banner + meta */
+/* Top row: banner + title */
 .p3p-top {
   display: flex;
   justify-content: space-between;
@@ -113,11 +110,11 @@ body {
   gap: 1rem;
 }
 
-/* Day off / Holiday banner */
+/* Top-left small holiday/day-off banner */
 .p3p-banner {
   position: relative;
   padding: 0.35rem 0.9rem;
-  background: linear-gradient(135deg, #ff4b6e, #ff9b4b);
+  background: linear-gradient(135deg, var(--accent-red), var(--accent-orange));
   color: #fff;
   font-size: 0.8rem;
   letter-spacing: 0.12em;
@@ -136,30 +133,66 @@ body {
   opacity: 0.9;
 }
 
-/* Date block */
-.p3p-date-block {
-  margin-top: 0.35rem;
+/* Big horizontal blue band like the game UI */
+.p3p-main-stripe {
+  position: relative;
+  margin-top: 0.55rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 0.6rem;
+  background:
+    linear-gradient(
+      90deg,
+      #0b2a6b 0%,
+      #1b4fb0 40%,
+      #3f7fff 100%
+    );
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.12),
+    0 14px 26px rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Left side of stripe: Japanese + Day off */
+.p3p-stripe-left {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.15rem;
 }
-.p3p-date-main {
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: 800;
-  letter-spacing: 0.12em;
+.p3p-stripe-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  opacity: 0.85;
 }
-.p3p-date-sub {
+.p3p-stripe-jp {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  opacity: 0.9;
+}
+
+/* Right side of stripe: big date */
+.p3p-stripe-date {
+  text-align: right;
+}
+.p3p-stripe-date-main {
+  font-size: clamp(2.1rem, 3.4vw, 2.6rem);
+  font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
+.p3p-stripe-date-sub {
+  margin-top: 0.1rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
 
-/* Top-right meta (title / label) */
+/* Top-right meta text */
 .p3p-meta {
   text-align: right;
-  max-width: 45%;
+  max-width: 40%;
 }
 .p3p-meta-title {
   font-size: 0.75rem;
@@ -173,7 +206,7 @@ body {
   color: rgba(255,255,255,0.7);
 }
 
-/* Diagonal timeline */
+/* Diagonal timeline area */
 .p3p-timeline-wrap {
   position: relative;
   flex: 1;
@@ -183,23 +216,25 @@ body {
   overflow: visible;
 }
 
-.p3p-timeline-diagonal {
+/* Diagonal row of days */
+.p3p-timeline-diag {
   position: relative;
   display: flex;
   gap: var(--gap);
-  transform: rotate(var(--stripe-angle));
+  transform: rotate(var(--diag-angle));
 }
 
-/* Each day cell */
+/* Day circle */
 .p3p-day {
   position: relative;
   width: var(--day-size);
   height: var(--day-size);
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 20%, #ffffff33, #0b1633 55%, #02040b 100%);
+  background:
+    radial-gradient(circle at 30% 20%, #ffffff33, #0b1633 55%, #02040b 100%);
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.12),
-    0 10px 18px rgba(0,0,0,0.7);
+    0 12px 20px rgba(0,0,0,0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -216,12 +251,12 @@ body {
   transform: translateY(-4px) scale(1.08);
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.18),
-    0 18px 30px rgba(0,0,0,0.9);
+    0 20px 32px rgba(0,0,0,0.95);
 }
 
-/* Inner content counter-rotated to stay upright */
+/* Inner content counter-rotated */
 .p3p-day-inner {
-  transform: rotate(calc(-1 * var(--stripe-angle)));
+  transform: rotate(calc(-1 * var(--diag-angle)));
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -238,7 +273,7 @@ body {
 
 /* Day number */
 .p3p-daynum {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
 }
 
@@ -249,13 +284,14 @@ body {
   justify-content: center;
 }
 
-/* Moon circle */
+/* Moon circle base */
 .p3p-moon {
   position: relative;
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.15rem;
+  height: 1.15rem;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 25%, #ffffff, #d0d0d0 45%, #888 100%);
+  background:
+    radial-gradient(circle at 30% 25%, #ffffff, #d0d0d0 45%, #888 100%);
   overflow: hidden;
 }
 
@@ -283,7 +319,8 @@ body {
 
 /* Yellow current-day moon */
 .p3p-day-current .p3p-moon {
-  background: radial-gradient(circle at 30% 25%, #fff7b0, #ffd94a 45%, #c89b1a 100%);
+  background:
+    radial-gradient(circle at 30% 25%, #fff7b0, #ffd94a 45%, #c89b1a 100%);
 }
 
 /* Animated targeting ring around current day */
@@ -320,7 +357,7 @@ body {
   }
 }
 
-/* Today label under timeline */
+/* Bottom row */
 .p3p-bottom {
   display: flex;
   justify-content: space-between;
@@ -344,10 +381,10 @@ body {
 }
 
 /* Responsive tweaks */
-@media (max-width: 700px) {
+@media (max-width: 720px) {
   :root {
-    --day-size: 3.4rem;
-    --gap: 0.8rem;
+    --day-size: 3.6rem;
+    --gap: 0.9rem;
   }
   .p3p-inner {
     padding: 0.8rem 0.9rem;
@@ -359,30 +396,40 @@ body {
 
 @media (max-width: 480px) {
   :root {
-    --day-size: 3rem;
-    --gap: 0.6rem;
+    --day-size: 3.1rem;
+    --gap: 0.7rem;
   }
-  .p3p-date-main {
-    font-size: 1.4rem;
+  .p3p-stripe-date-main {
+    font-size: 1.6rem;
   }
 }
 </style>
 </head>
 <body>
-<div class="p3p-calendar-wrapper">
-  <div class="p3p-calendar" id="p3p-calendar">
+<div class="p3p-wrapper">
+  <div class="p3p-card">
     <div class="p3p-inner">
       <div class="p3p-top">
         <div>
+          <!-- Top-left banner -->
           <div class="p3p-banner" id="p3p-banner" style="display:none;">
             <div class="p3p-banner-main" id="p3p-banner-main">DAY OFF</div>
             <div class="p3p-banner-sub" id="p3p-banner-sub"></div>
           </div>
-          <div class="p3p-date-block">
-            <div class="p3p-date-main" id="p3p-date-main"></div>
-            <div class="p3p-date-sub" id="p3p-date-sub"></div>
+
+          <!-- Main blue stripe -->
+          <div class="p3p-main-stripe">
+            <div class="p3p-stripe-left">
+              <div class="p3p-stripe-jp">休日 | Day off</div>
+              <div class="p3p-stripe-label" id="p3p-stripe-label"></div>
+            </div>
+            <div class="p3p-stripe-date">
+              <div class="p3p-stripe-date-main" id="p3p-date-main"></div>
+              <div class="p3p-stripe-date-sub" id="p3p-date-sub"></div>
+            </div>
           </div>
         </div>
+
         <div class="p3p-meta">
           <div class="p3p-meta-title">PERSONA 3 PORTABLE</div>
           <div class="p3p-meta-sub">
@@ -391,10 +438,12 @@ body {
         </div>
       </div>
 
+      <!-- Diagonal timeline -->
       <div class="p3p-timeline-wrap">
-        <div class="p3p-timeline-diagonal" id="p3p-timeline"></div>
+        <div class="p3p-timeline-diag" id="p3p-timeline"></div>
       </div>
 
+      <!-- Bottom info -->
       <div class="p3p-bottom">
         <div class="p3p-bottom-left">
           <div class="p3p-dot"></div>
@@ -427,17 +476,21 @@ function formatDateMain(date) {
   return `${day} / ${month} / ${year}`;
 }
 
-function formatDateSub(date) {
-  const days = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+function formatStripeLabel(date) {
   const months = [
     "Janvier","Février","Mars","Avril","Mai","Juin",
     "Juillet","Août","Septembre","Octobre","Novembre","Décembre"
   ];
-  return `${days[date.getDay()].toUpperCase()}  ·  ${date.getDate()} ${months[date.getMonth()].toUpperCase()}`;
+  return `${months[date.getMonth()].toUpperCase()} ${date.getFullYear()}`;
+}
+
+function formatDateSub(date) {
+  const days = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+  return `${days[date.getDay()].toUpperCase()}  ·  ${date.getDate()}`;
 }
 
 function formatDowShort(date) {
-  const days = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   return days[date.getDay()];
 }
 
@@ -496,10 +549,9 @@ function getFrenchHoliday(date) {
   return null;
 }
 
-// ---------- Moon phase (simple astronomical approximation) ----------
+// ---------- Moon phase (approximate astronomical) ----------
 // Returns phase fraction in [0,1], 0=new, 0.5=full
 function moonPhaseFraction(date) {
-  // Based on simple synodic month approximation
   const synodicMonth = 29.53058867;
   const knownNewMoon = new Date(Date.UTC(2000, 0, 6, 18, 14)); // reference new moon
   const daysSince = (date.getTime() - knownNewMoon.getTime()) / 86400000;
@@ -525,6 +577,7 @@ function moonPhaseName(frac) {
 
   const dateMainEl = document.getElementById("p3p-date-main");
   const dateSubEl = document.getElementById("p3p-date-sub");
+  const stripeLabelEl = document.getElementById("p3p-stripe-label");
   const bannerEl = document.getElementById("p3p-banner");
   const bannerMainEl = document.getElementById("p3p-banner-main");
   const bannerSubEl = document.getElementById("p3p-banner-sub");
@@ -532,22 +585,18 @@ function moonPhaseName(frac) {
   const moonLabelEl = document.getElementById("p3p-moon-label");
   const bottomLabelEl = document.getElementById("p3p-bottom-label");
 
-  // Top date
+  // Stripe date
   dateMainEl.textContent = formatDateMain(today);
   dateSubEl.textContent = formatDateSub(today);
+  stripeLabelEl.textContent = formatStripeLabel(today);
 
   // Holiday / day off banner
   const holiday = getFrenchHoliday(today);
   const isWeekend = today.getDay() === 0 || today.getDay() === 6;
   if (holiday || isWeekend) {
     bannerEl.style.display = "inline-flex";
-    if (holiday) {
-      bannerMainEl.textContent = "DAY OFF";
-      bannerSubEl.textContent = holiday.toUpperCase();
-    } else {
-      bannerMainEl.textContent = "DAY OFF";
-      bannerSubEl.textContent = "WEEK-END";
-    }
+    bannerMainEl.textContent = "DAY OFF";
+    bannerSubEl.textContent = (holiday ? holiday : "Week-end").toUpperCase();
   }
 
   // 8-day diagonal timeline centered on today (3 days before, 4 after)
@@ -593,7 +642,7 @@ function moonPhaseName(frac) {
 
     if (isToday) {
       moonLabelEl.textContent = phaseName.toUpperCase();
-      bottomLabelEl.textContent = "Aujourd'hui";
+      bottomLabelEl.textContent = "AUJOURD'HUI";
     }
   }
 })();
