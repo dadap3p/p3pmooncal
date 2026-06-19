@@ -3,26 +3,24 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Persona 3 Style Lunar Calendar — Fixed</title>
+<title>Persona 3 Exact Visual Calendar</title>
 <style>
 :root{
   --bg:#0b0c16;
-  --panel:#12121b;
-  --blue1:#004fb8;
-  --blue2:#007cff;
-  --deep:#002a66;
-  --accent:#00a0ff;
+  --stripe1:#003f9f;
+  --stripe2:#0066ff;
+  --stripe3:#00284f;
   --white:#ffffff;
   --yellow:#ffe500;
-  --glass: rgba(255,255,255,0.04);
-  --shadow: 0 10px 40px rgba(0,0,0,0.6);
+  --accent:rgba(0,160,255,0.45);
+  --shadow: 0 14px 48px rgba(0,0,0,0.65);
   --font-sans: "Inter", "Arial", sans-serif;
 }
 
-/* Reset + embed sizing */
+/* Reset + container */
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
-.wrap{
+.widget{
   width:100%;
   max-width:1100px;
   margin:0 auto;
@@ -36,19 +34,19 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-sans);-webkit-
   border:1px solid rgba(255,255,255,0.03);
 }
 
-/* Blue diagonal stripe layers */
+/* Diagonal stripes */
 .stripe{
   position:absolute;
-  left:-40%;
-  width:200%;
-  height:260px;
+  left:-36%;
+  width:210%;
+  height:280px;
   transform:rotate(14deg);
-  top:18%;
-  background:linear-gradient(90deg,var(--blue1),var(--blue2));
+  top:20%;
+  background:linear-gradient(90deg,var(--stripe1),var(--stripe2));
   z-index:2;
 }
-.stripe.layer2{ top:44%; height:160px; left:-35%; background:linear-gradient(90deg,#003b91,#0066ff); z-index:1; opacity:.9; }
-.stripe.layer3{ top:60%; height:120px; left:-30%; background:#00305f; z-index:0; opacity:.7; }
+.stripe.layer2{ top:46%; height:160px; left:-34%; background:linear-gradient(90deg,#00306f,#0058d6); z-index:1; opacity:.95; }
+.stripe.layer3{ top:62%; height:120px; left:-30%; background:var(--stripe3); z-index:0; opacity:.78; }
 
 /* Top-left holiday banner */
 .banner{
@@ -56,7 +54,7 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-sans);-webkit-
   top:14px;
   left:14px;
   height:62px;
-  min-width:260px;
+  min-width:300px;
   padding:0 18px;
   display:flex;
   align-items:center;
@@ -66,14 +64,14 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-sans);-webkit-
   letter-spacing:2px;
   z-index:20;
   border-radius:6px;
-  background:linear-gradient(90deg,var(--blue2),var(--blue1));
+  background:linear-gradient(90deg,var(--stripe2),var(--stripe1));
   box-shadow:0 6px 30px rgba(0,120,255,0.18);
   font-size:clamp(14px,2.2vw,22px);
 }
 .banner .jp{ font-size:1.05em; opacity:0.98; }
-.banner .eng{ font-size:.6em; opacity:0.98; margin-left:6px; font-weight:700; }
+.banner .eng{ font-size:.62em; opacity:0.98; margin-left:6px; font-weight:700; }
 
-/* Top-right caption (small Japanese title like image) */
+/* Top-right caption */
 .caption{
   position:absolute;
   right:18px;
@@ -99,7 +97,7 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-sans);-webkit-
 .date-block .month{ font-size:clamp(12px,1.6vw,20px); opacity:0.95; margin-top:6px; }
 .date-block .big{
   font-weight:900;
-  font-size:clamp(80px,12vw,220px);
+  font-size:clamp(90px,14vw,260px);
   line-height:.78;
   margin-top:6px;
   color:var(--white);
@@ -132,18 +130,18 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-sans);-webkit-
   transition:transform .22s ease, filter .22s ease;
   cursor:default;
   user-select:none;
-  width:clamp(90px,9.5vw,160px);
+  width:clamp(84px,9.2vw,150px);
 }
 .day:hover{ transform:translate(-50%,-50%) scale(1.18); filter:drop-shadow(0 0 30px rgba(255,255,255,0.08)); z-index:60; }
 
 /* number and weekday */
-.num{ font-weight:900; font-size:clamp(28px,4.2vw,64px); line-height:.9; }
-.week{ font-size:clamp(10px,1.2vw,16px); letter-spacing:4px; margin-top:6px; opacity:0.95; }
+.num{ font-weight:900; font-size:clamp(26px,3.8vw,60px); line-height:.9; }
+.week{ font-size:clamp(10px,1.2vw,14px); letter-spacing:4px; margin-top:6px; opacity:0.95; }
 
 /* Moon visuals */
 .moon{
-  width:clamp(44px,5.6vw,84px);
-  height:clamp(44px,5.6vw,84px);
+  width:clamp(52px,6.6vw,92px);
+  height:clamp(52px,6.6vw,92px);
   border-radius:50%;
   margin:10px auto 0;
   position:relative;
@@ -224,7 +222,7 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-sans);-webkit-
 </style>
 </head>
 <body>
-  <div class="wrap" role="region" aria-label="Persona 3 style lunar calendar">
+  <div class="widget" role="region" aria-label="Persona 3 style calendar">
     <div class="stripe"></div>
     <div class="stripe layer2"></div>
     <div class="stripe layer3"></div>
@@ -248,30 +246,41 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-sans);-webkit-
 
 <script>
 /* ---------- CONFIG ----------
-   Set demoMode = true to reproduce the second image exactly:
-   - Shows June 17..24 2026
-   - Highlights June 20 (Saturday) with yellow moon and ring
-   Set demoMode = false to use live current-date behavior.
+   demoPreset options:
+     "reload"  -> Persona 3 Reload style July 2-8 2009, highlight July 7
+     "second"  -> June 17-24 2026, highlight June 20
+     "live"    -> center on current date (auto-refresh at midnight)
+   Set demoPreset to the exact preset you want. This file ships with "reload" to match the requested image.
 */
-const demoMode = true;
+const demoPreset = "reload"; // "reload" | "second" | "live"
 
-/* ---------- Date source ----------
-   If demoMode, use fixed demoDate; otherwise use local today.
-*/
-const demoDate = new Date(2026, 5, 20); // June 20, 2026 (month index 5)
-const now = demoMode ? demoDate : new Date();
-const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+/* Preset centers */
+const presets = {
+  reload: { year:2009, month:6, day:7 },   // July 7, 2009 (month index 6)
+  second: { year:2026, month:5, day:20 }   // June 20, 2026 (month index 5)
+};
 
-/* Header text */
+/* Date source */
+let centerDate;
+if (demoPreset === "reload") {
+  centerDate = new Date(presets.reload.year, presets.reload.month, presets.reload.day);
+} else if (demoPreset === "second") {
+  centerDate = new Date(presets.second.year, presets.second.month, presets.second.day);
+} else {
+  const now = new Date();
+  centerDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+/* Header */
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-document.getElementById("year").textContent = today.getFullYear();
-document.getElementById("month").textContent = months[today.getMonth()];
-document.getElementById("big").textContent = today.getDate();
+document.getElementById("year").textContent = centerDate.getFullYear();
+document.getElementById("month").textContent = months[centerDate.getMonth()];
+document.getElementById("big").textContent = centerDate.getDate();
 
 /* Week labels */
 const week = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
 
-/* ---------- French holidays (fixed + movable) ---------- */
+/* Easter algorithm + French holidays */
 function easterDate(y){
   const a = y % 19;
   const b = Math.floor(y/100);
@@ -290,6 +299,7 @@ function easterDate(y){
   return new Date(y, month-1, day);
 }
 function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function fmt(d){ return String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
 function frenchHolidays(year){
   const e = easterDate(year);
   const map = new Map();
@@ -309,51 +319,38 @@ function frenchHolidays(year){
   map.set(fmt(addDays(e,50)),"🇫🇷 Whit Monday");
   return map;
 }
-function fmt(d){ return String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
-const holidayMap = frenchHolidays(today.getFullYear());
+const holidayMap = frenchHolidays(centerDate.getFullYear());
 function holidayName(d){ return holidayMap.get(fmt(d)) || ""; }
-document.getElementById("holiday").textContent = holidayName(today) || "Day off";
+document.getElementById("holiday").textContent = holidayName(centerDate) || "Day off";
 
-/* ---------- Moon phase calculation ----------
-   Returns fraction 0..1 where 0 = new moon, 0.5 = full moon
-*/
+/* Moon phase calculation */
 function moonPhaseFraction(date){
   const known = Date.UTC(2000,0,6,18,14,0);
-  const t = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0); // noon to reduce timezone jitter
+  const t = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
   const days = (t - known) / 86400000;
   const synodic = 29.530588853;
   let phase = ((days % synodic) + synodic) % synodic / synodic;
   return phase;
 }
 
-/* Create moon element with CSS variables controlling mask */
-function createMoonEl(phaseFrac, isToday){
+/* Create moon element */
+function createMoonEl(phaseFrac, isHighlighted){
   const moon = document.createElement("span");
   moon.className = "moon";
-  const litColor = isToday ? "var(--yellow)" : "#ffffff";
+  const litColor = isHighlighted ? "var(--yellow)" : "#ffffff";
   moon.style.setProperty("--lit-color", litColor);
-
-  // Compute offsets for mask technique
   const p = phaseFrac;
-  const centerOffset = ((0.5 - p) * 2) * 60; // -60%..60%
+  const centerOffset = ((0.5 - p) * 2) * 60; // -60..60
   const invert = -centerOffset * 0.9;
   moon.style.setProperty("--mask-offset", centerOffset + "%");
   moon.style.setProperty("--mask-invert", invert + "%");
   return moon;
 }
 
-/* ---------- Build 8-day diagonal timeline ----------
-   For demoMode: show June 17..24 2026 (centered on demoDate)
-   For live mode: 3 days before today .. 4 days after (8 total)
-*/
+/* Build 8-day diagonal timeline */
 const container = document.getElementById("days");
-let start = new Date(today);
-if (demoMode) {
-  // demoDate is June 20 -> start should be June 17
-  start = new Date(demoDate.getFullYear(), demoDate.getMonth(), demoDate.getDate() - 3);
-} else {
-  start.setDate(today.getDate() - 3);
-}
+let start = new Date(centerDate);
+start.setDate(centerDate.getDate() - 3);
 
 for (let i = 0; i < 8; i++){
   const d = new Date(start);
@@ -362,7 +359,7 @@ for (let i = 0; i < 8; i++){
   const node = document.createElement("div");
   node.className = "day";
 
-  // Diagonal placement tuned to match image spacing
+  // Diagonal placement tuned to match visual
   const left = 12 + i * 10.5;
   const top = 82 - i * 9.6;
   node.style.left = left + "%";
@@ -376,10 +373,17 @@ for (let i = 0; i < 8; i++){
   w.className = "week";
   w.textContent = week[d.getDay()];
 
-  const isToday = (d.toDateString() === today.toDateString());
-  // In demo mode, force highlight on June 20, 2026
-  const demoHighlight = demoMode && d.getFullYear() === 2026 && d.getMonth() === 5 && d.getDate() === 20;
-  const highlight = isToday || demoHighlight;
+  // Highlight rules per preset
+  let highlight = false;
+  if (demoPreset === "reload") {
+    // highlight July 7, 2009
+    highlight = (d.getFullYear() === 2009 && d.getMonth() === 6 && d.getDate() === 7);
+  } else if (demoPreset === "second") {
+    highlight = (d.getFullYear() === 2026 && d.getMonth() === 5 && d.getDate() === 20);
+  } else {
+    const today = new Date();
+    highlight = (d.toDateString() === today.toDateString());
+  }
 
   const moonEl = createMoonEl(moonPhaseFraction(d), highlight);
 
@@ -402,8 +406,8 @@ for (let i = 0; i < 8; i++){
   container.appendChild(node);
 }
 
-/* ---------- Auto-refresh at midnight (only when not in demo mode) ---------- */
-if (!demoMode) {
+/* Auto-refresh at midnight when live */
+if (demoPreset === "live") {
   (function scheduleMidnightRefresh(){
     const now = new Date();
     const next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 5);
@@ -412,7 +416,7 @@ if (!demoMode) {
   })();
 }
 
-/* Accessibility: keyboard focus */
+/* Keyboard focus */
 document.querySelectorAll(".day").forEach(el=>{
   el.tabIndex = 0;
   el.addEventListener("focus", ()=> el.classList.add("focused"));
@@ -421,6 +425,7 @@ document.querySelectorAll(".day").forEach(el=>{
 </script>
 </body>
 </html>
+
 
 
 
