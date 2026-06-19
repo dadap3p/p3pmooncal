@@ -1,69 +1,431 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lunar Calendar</title>
-  <style>
-    body {
-      background: #0a2a4f;
-      font-family: 'Arial Black', sans-serif;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      transform: rotate(-15deg);
-      gap: 20px;
-    }
-    .day {
-      background: #1c3b70;
-      border-radius: 50%;
-      width: 80px;
-      height: 80px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-size: 14px;
-      text-align: center;
-    }
-    .highlight {
-      background: #2a6edc;
-      grid-column: span 2;
-      border-radius: 10px;
-      width: 160px;
-      height: 100px;
-      font-size: 18px;
-      font-weight: bold;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    .label {
-      font-size: 12px;
-      margin-top: 5px;
-      opacity: 0.8;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Persona 3 Style Lunar Calendar Embed</title>
+<style>
+:root{
+  --bg:#0f1020;
+  --panel:#151522;
+  --blue1:#004fb8;
+  --blue2:#007cff;
+  --accent:#00a0ff;
+  --white:#ffffff;
+  --yellow:#ffe500;
+  --glass: rgba(255,255,255,0.04);
+  --shadow: 0 8px 30px rgba(0,0,0,0.6);
+  --font-sans: "Inter", "Arial", sans-serif;
+}
+
+/* Reset + embed-friendly sizing */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+.embed-wrap{
+  width:100%;
+  max-width:1100px;
+  margin:0 auto;
+  aspect-ratio:16/9;
+  min-height:320px;
+  background:linear-gradient(180deg,#0c0d16 0%, #11121b 100%);
+  border-radius:8px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(255,255,255,0.03);
+}
+
+/* Blue diagonal stripe layers (multiple for depth) */
+.stripe{
+  position:absolute;
+  left:-40%;
+  width:200%;
+  height:260px;
+  transform:rotate(14deg);
+  top:18%;
+  background:linear-gradient(90deg,var(--blue1),var(--blue2));
+  opacity:0.95;
+  filter:blur(0.2px);
+  z-index:2;
+}
+.stripe.layer2{ top:44%; height:160px; left:-35%; opacity:0.85; background:linear-gradient(90deg,#003b91,#0066ff); z-index:1; }
+.stripe.layer3{ top:60%; height:120px; left:-30%; opacity:0.6; background:#00305f; z-index:0; }
+
+/* Top-left holiday banner */
+.banner{
+  position:absolute;
+  top:14px;
+  left:14px;
+  height:62px;
+  min-width:260px;
+  padding:0 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:var(--white);
+  font-weight:900;
+  letter-spacing:2px;
+  z-index:20;
+  border-radius:6px;
+  background:linear-gradient(90deg,var(--blue2),var(--blue1));
+  box-shadow:0 6px 30px rgba(0,120,255,0.18);
+  font-size:clamp(14px,2.2vw,22px);
+}
+.banner .jp{ font-size:1.05em; opacity:0.95; }
+.banner .eng{ font-size:.6em; opacity:0.95; margin-left:6px; font-weight:700; }
+
+/* Main date block (left) */
+.date-block{
+  position:absolute;
+  left:6%;
+  top:18%;
+  z-index:10;
+  color:var(--white);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+.date-block .year{ font-weight:900; font-size:clamp(20px,3.2vw,44px); letter-spacing:2px; }
+.date-block .month{ font-size:clamp(12px,1.6vw,20px); opacity:0.95; margin-top:6px; }
+.date-block .big{
+  font-weight:900;
+  font-size:clamp(80px,12vw,220px);
+  line-height:.78;
+  margin-top:6px;
+  color:var(--white);
+  opacity:0.98;
+}
+
+/* Diagonal timeline line */
+.timeline{
+  position:absolute;
+  width:92%;
+  height:6px;
+  background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.18));
+  transform:rotate(-35deg);
+  left:4%;
+  top:58%;
+  z-index:9;
+  border-radius:6px;
+  box-shadow:0 6px 30px rgba(0,0,0,0.6);
+}
+
+/* Days container */
+.days{ position:absolute; inset:0; z-index:15; pointer-events:auto; }
+
+/* Each day bubble */
+.day{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  color:var(--white);
+  transition:transform .22s ease, filter .22s ease;
+  cursor:default;
+  user-select:none;
+  width:clamp(90px,9.5vw,160px);
+}
+.day:hover{ transform:translate(-50%,-50%) scale(1.18); filter:drop-shadow(0 0 30px rgba(255,255,255,0.08)); z-index:60; }
+
+/* number and weekday */
+.num{ font-weight:900; font-size:clamp(28px,4.2vw,64px); line-height:.9; }
+.week{ font-size:clamp(10px,1.2vw,16px); letter-spacing:4px; margin-top:6px; opacity:0.95; }
+
+/* Moon visuals */
+.moon{
+  width:clamp(44px,5.6vw,84px);
+  height:clamp(44px,5.6vw,84px);
+  border-radius:50%;
+  margin:10px auto 0;
+  position:relative;
+  overflow:visible;
+  display:block;
+  background: radial-gradient(circle at 35% 35%, #f6f6f6 0%, #e6e6e6 35%, #d6d6d6 60%, #111 62%);
+  box-shadow: inset 0 -6px 18px rgba(0,0,0,0.45);
+}
+
+/* Moon lit mask technique:
+   - .moon::before is the lit disc (colored)
+   - .moon::after is the dark disc that masks part of the lit disc to create phase
+   JS sets --lit-color and --mask-offset and --mask-invert to control phase */
+.moon::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background: var(--lit-color, #fff);
+  mix-blend-mode:screen;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.06));
+  transform: translateX(var(--mask-offset, 0%));
+  transition: transform .28s linear, background .28s linear;
+  z-index:2;
+}
+.moon::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background: radial-gradient(circle at 50% 50%, rgba(17,17,17,1) 0%, rgba(17,17,17,1) 60%, rgba(17,17,17,0.98) 100%);
+  transform: translateX(var(--mask-invert, 0%));
+  transition: transform .28s linear;
+  z-index:3;
+  mix-blend-mode:normal;
+  opacity:1;
+}
+
+/* Today's accent: yellow lit + white border + glow + ring */
+.day.today .moon::before{ background: var(--yellow); box-shadow:0 0 18px rgba(255,229,0,0.45); }
+.day.today .moon{ border:4px solid rgba(255,255,255,0.95); box-shadow:0 0 28px rgba(255,229,0,0.12), inset 0 -6px 18px rgba(0,0,0,0.45); }
+
+/* Targeting ring appended inside moon (absolute to moon) */
+.ring{
+  position:absolute;
+  width:calc(100% + 18px);
+  height:calc(100% + 18px);
+  border-radius:50%;
+  border:3px solid rgba(0,160,255,0.45);
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  animation:pulse 2.6s infinite;
+  z-index:1;
+  pointer-events:none;
+}
+.ring:after{
+  content:"";
+  position:absolute;
+  inset:8px;
+  border-radius:50%;
+  border:2px solid rgba(0,160,255,0.25);
+}
+
+/* Hover enlargement for moon specifically */
+.day:hover .moon{ transform:scale(1.08); transition:transform .22s ease; }
+
+/* Pulse animation */
+@keyframes pulse{
+  0%{ transform:translate(-50%,-50%) scale(.86); opacity:.9 }
+  50%{ transform:translate(-50%,-50%) scale(1.12); opacity:1 }
+  100%{ transform:translate(-50%,-50%) scale(.86); opacity:.9 }
+}
+
+/* small responsive tweaks for very narrow embeds */
+@media (max-width:520px){
+  .banner{ left:8px; top:8px; min-width:200px; height:52px; font-size:14px }
+  .date-block{ left:6%; top:12% }
+  .date-block .big{ font-size:clamp(48px,10vw,120px) }
+  .day{ width:clamp(70px,12vw,120px) }
+}
+</style>
 </head>
 <body>
-  <div class="calendar">
-    <div class="day">Jul 2<br><span class="label">Thu</span></div>
-    <div class="day">Jul 3<br><span class="label">Fri</span></div>
-    <div class="day">Jul 4<br><span class="label">Sat</span></div>
-    <div class="day">Jul 5<br><span class="label">Sun</span></div>
-    <div class="day">Jul 6<br><span class="label">Mon</span></div>
-    <div class="highlight">
-      2009 Jul 7<br>
-      <span class="label">休日 Day Off</span>
+  <div class="embed-wrap" role="region" aria-label="Persona 3 style lunar calendar">
+    <div class="stripe"></div>
+    <div class="stripe layer2"></div>
+    <div class="stripe layer3"></div>
+
+    <div class="banner" aria-hidden="false">
+      <div class="jp">休日</div>
+      <div class="eng" id="holiday">Day off</div>
     </div>
-    <div class="day">Jul 8<br><span class="label">Wed</span></div>
+
+    <div class="date-block" aria-hidden="false">
+      <div class="year" id="year"></div>
+      <div class="month" id="month"></div>
+      <div class="big" id="big"></div>
+    </div>
+
+    <div class="timeline" aria-hidden="true"></div>
+    <div id="days" class="days" aria-live="polite"></div>
   </div>
+
+<script>
+/* ---------- Utilities ---------- */
+const today = new Date();
+const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const week = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+
+/* Fill header */
+document.getElementById("year").textContent = today.getFullYear();
+document.getElementById("month").textContent = months[today.getMonth()];
+document.getElementById("big").textContent = today.getDate();
+
+/* ---------- French holidays (fixed + movable) ---------- */
+/* Compute Easter (Meeus/Jones algorithm) */
+function easterDate(y){
+  const a = y % 19;
+  const b = Math.floor(y/100);
+  const c = y % 100;
+  const d = Math.floor(b/4);
+  const e = b % 4;
+  const f = Math.floor((b+8)/25);
+  const g = Math.floor((b-f+1)/3);
+  const h = (19*a + b - d - g + 15) % 30;
+  const i = Math.floor(c/4);
+  const k = c % 4;
+  const l = (32 + 2*e + 2*i - h - k) % 7;
+  const m = Math.floor((a + 11*h + 22*l) / 451);
+  const month = Math.floor((h + l - 7*m + 114) / 31);
+  const day = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(y, month-1, day);
+}
+
+/* Add days helper */
+function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+
+/* Build holiday map for a year */
+function frenchHolidays(year){
+  const e = easterDate(year);
+  const map = new Map();
+  // fixed
+  const fixed = {
+    "01-01":"🇫🇷 New Year's Day",
+    "05-01":"🇫🇷 Labour Day",
+    "05-08":"🇫🇷 Victory Day",
+    "07-14":"🇫🇷 Bastille Day",
+    "08-15":"🇫🇷 Assumption",
+    "11-01":"🇫🇷 All Saints",
+    "11-11":"🇫🇷 Armistice",
+    "12-25":"🇫🇷 Christmas"
+  };
+  for(const k in fixed) map.set(k, fixed[k]);
+  // movable
+  const em = addDays(e, 1); // Easter Monday
+  const asc = addDays(e, 39); // Ascension (Thursday)
+  const whit = addDays(e, 50); // Whit Monday (Pentecost Monday)
+  const fmt = d => String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  map.set(fmt(em), "🇫🇷 Easter Monday");
+  map.set(fmt(asc), "🇫🇷 Ascension");
+  map.set(fmt(whit), "🇫🇷 Whit Monday");
+  return map;
+}
+
+/* Get holiday name for a date */
+const holidayMap = frenchHolidays(today.getFullYear());
+function holidayName(d){
+  const key = String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  return holidayMap.get(key) || "";
+}
+
+/* Update banner text */
+const holidayText = holidayName(today);
+document.getElementById("holiday").textContent = holidayText || "Day off";
+
+/* ---------- Moon phase calculation ----------
+   Returns fraction 0..1 where 0 = new moon, 0.5 = full moon
+   Uses simple astronomical approximation based on known epoch.
+*/
+function moonPhaseFraction(date){
+  // Known new moon epoch (2000-01-06 18:14 UTC)
+  const known = Date.UTC(2000,0,6,18,14,0);
+  const t = date.getTime();
+  const days = (t - known) / 86400000;
+  const synodic = 29.530588853; // average length
+  let phase = ((days % synodic) + synodic) % synodic / synodic;
+  return phase; // 0..1
+}
+
+/* Create moon element with CSS variables controlling mask */
+function createMoonEl(phaseFrac, isToday){
+  const moon = document.createElement("span");
+  moon.className = "moon";
+  // Determine lit color (yellow for today)
+  const litColor = isToday ? "var(--yellow)" : "#ffffff";
+  moon.style.setProperty("--lit-color", litColor);
+
+  /* Compute mask offsets:
+     We'll use two translations to simulate phase:
+     - ::before (lit disc) is shifted horizontally by --mask-offset
+     - ::after (dark mask) is shifted by --mask-invert
+     The values are percentages; we compute them so that:
+       - phase ~0 (new moon): lit disc mostly hidden
+       - phase ~0.25 (first quarter): half lit
+       - phase ~0.5 (full): lit disc centered
+       - phase ~0.75 (last quarter): half lit opposite
+  */
+  const p = phaseFrac;
+  // Convert to -100%..100% offsets
+  // centerOffset: 0 at full moon, negative for waxing/new, positive for waning
+  // We'll map p in [0,1] to offset in [-60%,60%] with full at 0
+  const centerOffset = ((0.5 - p) * 2) * 60; // percent
+  // mask invert moves opposite direction slightly to create crescent/ gibbous
+  const invert = -centerOffset * 0.9;
+
+  moon.style.setProperty("--mask-offset", centerOffset + "%");
+  moon.style.setProperty("--mask-invert", invert + "%");
+
+  return moon;
+}
+
+/* ---------- Build 8-day diagonal timeline ----------
+   3 days before today, today, 4 days after (total 8)
+   Positions are placed along a diagonal by percentage offsets.
+*/
+const container = document.getElementById("days");
+const start = new Date(today);
+start.setDate(today.getDate() - 3);
+
+for(let i=0;i<8;i++){
+  const d = new Date(start);
+  d.setDate(start.getDate() + i);
+
+  const dayEl = document.createElement("div");
+  dayEl.className = "day";
+  // Diagonal placement: left increases, top decreases to create diagonal up-right
+  const left = 12 + i * 10.5; // tuned for visual parity
+  const top = 82 - i * 9.6;
+  dayEl.style.left = left + "%";
+  dayEl.style.top = top + "%";
+
+  // Number and weekday
+  const num = document.createElement("div");
+  num.className = "num";
+  num.textContent = d.getDate();
+
+  const wk = document.createElement("div");
+  wk.className = "week";
+  wk.textContent = week[d.getDay()];
+
+  // Moon
+  const isToday = d.toDateString() === today.toDateString();
+  const phaseFrac = moonPhaseFraction(d);
+  const moon = createMoonEl(phaseFrac, isToday);
+
+  // If today, add ring inside moon
+  if(isToday){
+    dayEl.classList.add("today");
+    const ring = document.createElement("div");
+    ring.className = "ring";
+    moon.appendChild(ring);
+  }
+
+  dayEl.appendChild(num);
+  dayEl.appendChild(wk);
+  dayEl.appendChild(moon);
+
+  // Accessibility label
+  const holiday = holidayName(d);
+  const labelParts = [`${d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}`];
+  if(holiday) labelParts.push(holiday);
+  dayEl.setAttribute("aria-label", labelParts.join(" • "));
+
+  container.appendChild(dayEl);
+}
+
+/* ---------- Auto-update at midnight local time ----------
+   Rebuilds the widget when the day rolls over (keeps embed current).
+*/
+(function scheduleMidnightRefresh(){
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 5); // 5s after midnight
+  const ms = next - now;
+  setTimeout(()=> location.reload(), ms);
+})();
+
+/* ---------- Optional: small accessibility focus handling ---------- */
+document.querySelectorAll(".day").forEach(el=>{
+  el.tabIndex = 0;
+  el.addEventListener("focus", ()=> el.classList.add("focused"));
+  el.addEventListener("blur", ()=> el.classList.remove("focused"));
+});
+</script>
 </body>
 </html>
 
